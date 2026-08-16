@@ -1,9 +1,32 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <RootNamespace>Merfit.Infrastructure</RootNamespace>
+    <AssemblyName>Merfit.Infrastructure</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <PackageReference Include="Hangfire.AspNetCore" />
+    <PackageReference Include="Hangfire.PostgreSql" />
+    <PackageReference Include="Hangfire.InMemory" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MerfitApi.Domain\MerfitApi.Domain.csproj" />
+    <ProjectReference Include="..\MerfitApi.Business\MerfitApi.Business.csproj" />
+  </ItemGroup>
 
 </Project>
