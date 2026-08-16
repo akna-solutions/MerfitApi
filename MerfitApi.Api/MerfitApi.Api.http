@@ -1,0 +1,6 @@
+@MerfitApi.Api_HostAddress = http://localhost:5219
+
+GET {{MerfitApi.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
