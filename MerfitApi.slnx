@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="MerfitApi.Api/MerfitApi.Api.csproj" />
+  <Project Path="MerfitApi.Business/MerfitApi.Business.csproj" />
+  <Project Path="MerfitApi.Domain/MerfitApi.Domain.csproj" />
+  <Project Path="MerfitApi.Infrastructure/MerfitApi.Infrastructure.csproj" />
+  <Project Path="MerfitApi.IntegrationTests/MerfitApi.IntegrationTests.csproj" />
+  <Project Path="MerfitApi.UnitTests/MerfitApi.UnitTests.csproj" />
+</Solution>
