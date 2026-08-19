@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// WorkoutPlanDay varligini temsil eder.
 /// </summary>
-public class WorkoutPlanDay
+public class WorkoutPlanDay : BaseEntity
 {
-    /// <summary>
-    /// Plan gunu kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Iliskili antrenman planinin kimligi.
     /// </summary>
-    public Guid WorkoutPlanId { get; set; }
+    public long WorkoutPlanId { get; set; }
 
     /// <summary>
     /// Antrenmanin planlandigi haftanin gunu.
@@ -27,7 +24,7 @@ public class WorkoutPlanDay
     /// <summary>
     /// O gun icin planlanan antrenmanin kimligi.
     /// </summary>
-    public Guid WorkoutId { get; set; }
+    public long WorkoutId { get; set; }
 
     /// <summary>
     /// Ayni gun icindeki siralama degeri.

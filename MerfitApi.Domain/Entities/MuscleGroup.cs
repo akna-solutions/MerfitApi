@@ -2,18 +2,15 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// MuscleGroup varligini temsil eder.
 /// </summary>
-public class MuscleGroup
+public class MuscleGroup : BaseEntity
 {
-    /// <summary>
-    /// Kas grubunun benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Kas grubunun adi (orn. Gogus, Sirt).
     /// </summary>

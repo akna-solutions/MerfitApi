@@ -2,18 +2,15 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// Food varligini temsil eder.
 /// </summary>
-public class Food
+public class Food : BaseEntity
 {
-    /// <summary>
-    /// Besinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Besinin adi.
     /// </summary>
@@ -78,9 +75,4 @@ public class Food
     /// Besin gorselinin adresi.
     /// </summary>
     public string? ImageUrl { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }

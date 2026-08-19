@@ -2,20 +2,22 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// SubscriptionPlanFeature varligini temsil eder.
 /// </summary>
-public class SubscriptionPlanFeature
+public class SubscriptionPlanFeature : BaseEntity
 {
     /// <summary>
     /// Iliskili abonelik urununun kimligi.
     /// </summary>
-    public Guid SubscriptionProductId { get; set; }
+    public long SubscriptionProductId { get; set; }
 
     /// <summary>
     /// Iliskili ozelligin kimligi.
     /// </summary>
-    public Guid FeatureId { get; set; }
+    public long FeatureId { get; set; }
 }

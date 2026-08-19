@@ -2,18 +2,15 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// Reward varligini temsil eder.
 /// </summary>
-public class Reward
+public class Reward : BaseEntity
 {
-    /// <summary>
-    /// Odulun benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Odulun basligi.
     /// </summary>

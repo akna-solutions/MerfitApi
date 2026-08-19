@@ -2,27 +2,24 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// WorkoutExercise varligini temsil eder.
 /// </summary>
-public class WorkoutExercise
+public class WorkoutExercise : BaseEntity
 {
-    /// <summary>
-    /// Antrenman-egzersiz iliski kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Iliskili antrenmanin kimligi.
     /// </summary>
-    public Guid WorkoutId { get; set; }
+    public long WorkoutId { get; set; }
 
     /// <summary>
     /// Iliskili egzersizin kimligi.
     /// </summary>
-    public Guid ExerciseId { get; set; }
+    public long ExerciseId { get; set; }
 
     /// <summary>
     /// Egzersizin antrenman icindeki sirasi.

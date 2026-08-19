@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// UserStreak varligini temsil eder.
 /// </summary>
-public class UserStreak
+public class UserStreak : BaseEntity
 {
-    /// <summary>
-    /// Seri (streak) kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Serinin ait oldugu kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Kullanicinin guncel ardisik gun sayisi.
@@ -33,9 +30,4 @@ public class UserStreak
     /// Son aktivite tarihi.
     /// </summary>
     public DateTime? LastActivityDate { get; set; }
-
-    /// <summary>
-    /// Kaydin son guncellenme tarihi.
-    /// </summary>
-    public DateTime UpdatedAt { get; set; }
 }

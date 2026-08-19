@@ -2,18 +2,15 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// FAQCategory varligini temsil eder.
 /// </summary>
-public class FAQCategory
+public class FAQCategory : BaseEntity
 {
-    /// <summary>
-    /// SSS kategorisinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Kategorinin adi.
     /// </summary>

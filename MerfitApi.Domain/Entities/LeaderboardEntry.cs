@@ -2,27 +2,24 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// LeaderboardEntry varligini temsil eder.
 /// </summary>
-public class LeaderboardEntry
+public class LeaderboardEntry : BaseEntity
 {
-    /// <summary>
-    /// Liderlik tablosu kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Iliskili donemin kimligi.
     /// </summary>
-    public Guid LeaderboardPeriodId { get; set; }
+    public long LeaderboardPeriodId { get; set; }
 
     /// <summary>
     /// Siralamadaki kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Kullanicinin bu donemde topladigi puan.

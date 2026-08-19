@@ -2,20 +2,22 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// WorkoutEquipment varligini temsil eder.
 /// </summary>
-public class WorkoutEquipment
+public class WorkoutEquipment : BaseEntity
 {
     /// <summary>
     /// Iliskili antrenmanin kimligi.
     /// </summary>
-    public Guid WorkoutId { get; set; }
+    public long WorkoutId { get; set; }
 
     /// <summary>
     /// Iliskili ekipmanin kimligi.
     /// </summary>
-    public Guid EquipmentId { get; set; }
+    public long EquipmentId { get; set; }
 }

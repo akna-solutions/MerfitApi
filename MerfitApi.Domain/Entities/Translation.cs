@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// Translation varligini temsil eder.
 /// </summary>
-public class Translation
+public class Translation : BaseEntity
 {
-    /// <summary>
-    /// Ceviri kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Iliskili dilin kimligi.
     /// </summary>
-    public Guid LanguageId { get; set; }
+    public long LanguageId { get; set; }
 
     /// <summary>
     /// Ceviri metnine karsilik gelen anahtar (orn. workout.start).

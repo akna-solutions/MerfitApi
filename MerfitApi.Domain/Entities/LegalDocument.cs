@@ -3,19 +3,15 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// LegalDocument varligini temsil eder.
 /// </summary>
-public class LegalDocument
+public class LegalDocument : BaseEntity
 {
-    /// <summary>
-    /// Yasal belgenin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Belgenin turu.
     /// </summary>

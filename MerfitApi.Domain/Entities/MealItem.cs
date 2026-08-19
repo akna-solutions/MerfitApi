@@ -2,27 +2,24 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// MealItem varligini temsil eder.
 /// </summary>
-public class MealItem
+public class MealItem : BaseEntity
 {
-    /// <summary>
-    /// Ogun kalemi kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Iliskili ogunun kimligi.
     /// </summary>
-    public Guid MealId { get; set; }
+    public long MealId { get; set; }
 
     /// <summary>
     /// Iliskili besinin kimligi.
     /// </summary>
-    public Guid FoodId { get; set; }
+    public long FoodId { get; set; }
 
     /// <summary>
     /// Tuketilen miktar.

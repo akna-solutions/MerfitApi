@@ -3,19 +3,15 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// SubscriptionProduct varligini temsil eder.
 /// </summary>
-public class SubscriptionProduct
+public class SubscriptionProduct : BaseEntity
 {
-    /// <summary>
-    /// Abonelik urununun benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Urunun sistemsel kodu (orn. MERFIT_PLUS_MONTHLY).
     /// </summary>

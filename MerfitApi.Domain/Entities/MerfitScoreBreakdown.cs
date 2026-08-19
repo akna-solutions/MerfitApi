@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// MerfitScoreBreakdown varligini temsil eder.
 /// </summary>
-public class MerfitScoreBreakdown
+public class MerfitScoreBreakdown : BaseEntity
 {
-    /// <summary>
-    /// Skor kirilim kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Iliskili Merfit skorunun kimligi.
     /// </summary>
-    public Guid MerfitScoreId { get; set; }
+    public long MerfitScoreId { get; set; }
 
     /// <summary>
     /// Skor kaleminin kategorisi (orn. Consistency, Workouts).

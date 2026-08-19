@@ -3,23 +3,19 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// UserPreference varligini temsil eder.
 /// </summary>
-public class UserPreference
+public class UserPreference : BaseEntity
 {
-    /// <summary>
-    /// Tercih kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Tercihin ait oldugu kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Kullanicinin tercih ettigi uygulama dili.
@@ -35,14 +31,4 @@ public class UserPreference
     /// Kullanicinin tercih ettigi olcum birimi sistemi.
     /// </summary>
     public UnitSystem UnitSystem { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// Kaydin son guncellenme tarihi.
-    /// </summary>
-    public DateTime UpdatedAt { get; set; }
 }

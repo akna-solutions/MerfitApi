@@ -2,18 +2,15 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// Feature varligini temsil eder.
 /// </summary>
-public class Feature
+public class Feature : BaseEntity
 {
-    /// <summary>
-    /// Ozelligin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Ozelligin sistemsel kodu (orn. AI_WORKOUT).
     /// </summary>

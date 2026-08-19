@@ -3,19 +3,15 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// LeaderboardPeriod varligini temsil eder.
 /// </summary>
-public class LeaderboardPeriod
+public class LeaderboardPeriod : BaseEntity
 {
-    /// <summary>
-    /// Liderlik tablosu donemi kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Donemin turu (haftalik, aylik, tum zamanlar).
     /// </summary>

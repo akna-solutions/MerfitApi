@@ -3,23 +3,19 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// SubscriptionTransaction varligini temsil eder.
 /// </summary>
-public class SubscriptionTransaction
+public class SubscriptionTransaction : BaseEntity
 {
-    /// <summary>
-    /// Islem kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Iliskili aboneligin kimligi.
     /// </summary>
-    public Guid SubscriptionId { get; set; }
+    public long SubscriptionId { get; set; }
 
     /// <summary>
     /// Islemin gerceklestigi magaza saglayicisi.
@@ -65,9 +61,4 @@ public class SubscriptionTransaction
     /// Magazadan alinan ham makbuz verisi.
     /// </summary>
     public string? RawReceipt { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }

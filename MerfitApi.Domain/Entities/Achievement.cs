@@ -2,18 +2,15 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// Achievement varligini temsil eder.
 /// </summary>
-public class Achievement
+public class Achievement : BaseEntity
 {
-    /// <summary>
-    /// Basarinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Basarinin sistemsel kodu (orn. FIRST_WORKOUT).
     /// </summary>

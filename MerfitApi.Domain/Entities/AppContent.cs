@@ -2,18 +2,15 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// AppContent varligini temsil eder.
 /// </summary>
-public class AppContent
+public class AppContent : BaseEntity
 {
-    /// <summary>
-    /// Icerik kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Icerigin sistemsel anahtari (orn. home.banner).
     /// </summary>

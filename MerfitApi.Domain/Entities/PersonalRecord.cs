@@ -2,27 +2,24 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// PersonalRecord varligini temsil eder.
 /// </summary>
-public class PersonalRecord
+public class PersonalRecord : BaseEntity
 {
-    /// <summary>
-    /// Kisisel rekor kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Rekoru kiran kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Rekorun ait oldugu egzersizin kimligi.
     /// </summary>
-    public Guid ExerciseId { get; set; }
+    public long ExerciseId { get; set; }
 
     /// <summary>
     /// Rekor sirasinda kaldirilan agirlik (kilogram).
@@ -47,5 +44,5 @@ public class PersonalRecord
     /// <summary>
     /// Rekorun kirildigi antrenman oturumunun kimligi.
     /// </summary>
-    public Guid? WorkoutSessionId { get; set; }
+    public long? WorkoutSessionId { get; set; }
 }

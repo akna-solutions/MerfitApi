@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// UserPrivacySetting varligini temsil eder.
 /// </summary>
-public class UserPrivacySetting
+public class UserPrivacySetting : BaseEntity
 {
-    /// <summary>
-    /// Gizlilik ayari kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Ayarin ait oldugu kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Profilin liderlik tablosunda gorunur olup olmadigi.
@@ -33,14 +30,4 @@ public class UserPrivacySetting
     /// Kisisellestirilmis onerilerin acik olup olmadigi.
     /// </summary>
     public bool PersonalizedRecommendations { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// Kaydin son guncellenme tarihi.
-    /// </summary>
-    public DateTime UpdatedAt { get; set; }
 }

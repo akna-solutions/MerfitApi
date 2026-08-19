@@ -3,23 +3,19 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// UserDevice varligini temsil eder.
 /// </summary>
-public class UserDevice
+public class UserDevice : BaseEntity
 {
-    /// <summary>
-    /// Cihaz kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Cihazin ait oldugu kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Push bildirimleri icin cihaz jetonu.
@@ -55,9 +51,4 @@ public class UserDevice
     /// Cihazin son gorulme tarihi.
     /// </summary>
     public DateTime? LastSeenAt { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }

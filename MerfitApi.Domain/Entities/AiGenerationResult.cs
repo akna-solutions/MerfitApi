@@ -2,30 +2,22 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// AiGenerationResult varligini temsil eder.
 /// </summary>
-public class AiGenerationResult
+public class AiGenerationResult : BaseEntity
 {
-    /// <summary>
-    /// Uretim sonucu kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Iliskili uretim istegi kimligi.
     /// </summary>
-    public Guid RequestId { get; set; }
+    public long RequestId { get; set; }
 
     /// <summary>
     /// Uretilen sonucun JSON formatinda tutuldugu alan.
     /// </summary>
     public string ResultJson { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }

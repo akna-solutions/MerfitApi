@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// WaterLog varligini temsil eder.
 /// </summary>
-public class WaterLog
+public class WaterLog : BaseEntity
 {
-    /// <summary>
-    /// Su tuketimi kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Kaydi olusturan kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Su tuketiminin gerceklestigi tarih.
@@ -28,9 +25,4 @@ public class WaterLog
     /// Tuketilen su miktari (mililitre).
     /// </summary>
     public decimal AmountMl { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }

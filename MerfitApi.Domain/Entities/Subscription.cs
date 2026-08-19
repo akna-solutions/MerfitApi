@@ -3,28 +3,24 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// Subscription varligini temsil eder.
 /// </summary>
-public class Subscription
+public class Subscription : BaseEntity
 {
-    /// <summary>
-    /// Abonelik kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Abonelik sahibi kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Satin alinan abonelik urununun kimligi.
     /// </summary>
-    public Guid SubscriptionProductId { get; set; }
+    public long SubscriptionProductId { get; set; }
 
     /// <summary>
     /// Odemenin gerceklestigi magaza saglayicisi.
@@ -60,14 +56,4 @@ public class Subscription
     /// Aboneligin iptal edildigi tarih.
     /// </summary>
     public DateTime? CancelledAt { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// Kaydin son guncellenme tarihi.
-    /// </summary>
-    public DateTime UpdatedAt { get; set; }
 }

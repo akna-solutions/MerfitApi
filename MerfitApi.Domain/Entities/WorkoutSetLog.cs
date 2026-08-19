@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// WorkoutSetLog varligini temsil eder.
 /// </summary>
-public class WorkoutSetLog
+public class WorkoutSetLog : BaseEntity
 {
-    /// <summary>
-    /// Set kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Iliskili oturum-egzersiz kaydinin kimligi.
     /// </summary>
-    public Guid WorkoutSessionExerciseId { get; set; }
+    public long WorkoutSessionExerciseId { get; set; }
 
     /// <summary>
     /// Setin sira numarasi.

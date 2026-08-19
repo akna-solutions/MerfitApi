@@ -2,18 +2,15 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// WorkoutCategory varligini temsil eder.
 /// </summary>
-public class WorkoutCategory
+public class WorkoutCategory : BaseEntity
 {
-    /// <summary>
-    /// Antrenman kategorisinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Kategorinin adi (orn. Strength, Cardio).
     /// </summary>

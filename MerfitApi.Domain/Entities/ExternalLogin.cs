@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// ExternalLogin varligini temsil eder.
 /// </summary>
-public class ExternalLogin
+public class ExternalLogin : BaseEntity
 {
-    /// <summary>
-    /// Harici giris kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Girisin ait oldugu kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Harici giris saglayicisi (orn. Apple, Google).
@@ -33,9 +30,4 @@ public class ExternalLogin
     /// Saglayicidan alinan e-posta adresi.
     /// </summary>
     public string? Email { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }
