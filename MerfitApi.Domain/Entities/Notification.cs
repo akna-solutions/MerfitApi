@@ -3,23 +3,19 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// Notification varligini temsil eder.
 /// </summary>
-public class Notification
+public class Notification : BaseEntity
 {
-    /// <summary>
-    /// Bildirimin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Bildirimin gonderildigi kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Bildirimin turu.
@@ -55,11 +51,6 @@ public class Notification
     /// Bildirimin okundugu tarih.
     /// </summary>
     public DateTime? ReadAt { get; set; }
-
-    /// <summary>
-    /// Bildirimin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// Bildirimin son gecerlilik tarihi.

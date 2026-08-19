@@ -13,7 +13,7 @@ public interface IGenericRepository<TEntity> where TEntity : class
     /// </summary>
     /// <param name="id">Aranan kaydin birincil anahtar degeri.</param>
     /// <param name="cancellationToken">Islemi iptal etmek icin kullanilan token.</param>
-    Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<TEntity?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Bu entity turune ait tum kayitlari asenkron olarak getirir.

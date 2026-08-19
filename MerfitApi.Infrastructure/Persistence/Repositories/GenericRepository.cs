@@ -41,7 +41,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
     /// </summary>
     /// <param name="id">Aranan kaydin birincil anahtar degeri.</param>
     /// <param name="cancellationToken">Islemi iptal etmek icin kullanilan token.</param>
-    public virtual async Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual async Task<TEntity?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
     {
         return await DbSet.FindAsync(new object?[] { id }, cancellationToken);
     }

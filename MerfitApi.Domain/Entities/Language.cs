@@ -2,18 +2,15 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// Language varligini temsil eder.
 /// </summary>
-public class Language
+public class Language : BaseEntity
 {
-    /// <summary>
-    /// Dilin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Dilin ISO koduna (orn. tr, en) karsilik gelen degeri.
     /// </summary>

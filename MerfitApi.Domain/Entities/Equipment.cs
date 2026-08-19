@@ -2,18 +2,15 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// Equipment varligini temsil eder.
 /// </summary>
-public class Equipment
+public class Equipment : BaseEntity
 {
-    /// <summary>
-    /// Ekipmanin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Ekipmanin adi (orn. Dambil, Halter).
     /// </summary>

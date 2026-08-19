@@ -3,23 +3,19 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// SupportTicket varligini temsil eder.
 /// </summary>
-public class SupportTicket
+public class SupportTicket : BaseEntity
 {
-    /// <summary>
-    /// Destek talebinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Talebi olusturan kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Talebin konusu.
@@ -40,11 +36,6 @@ public class SupportTicket
     /// Talebin oncelik seviyesi.
     /// </summary>
     public SupportTicketPriority Priority { get; set; }
-
-    /// <summary>
-    /// Talebin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// Talebin kapatilma tarihi.

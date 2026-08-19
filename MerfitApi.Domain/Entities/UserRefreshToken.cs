@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// UserRefreshToken varligini temsil eder.
 /// </summary>
-public class UserRefreshToken
+public class UserRefreshToken : BaseEntity
 {
-    /// <summary>
-    /// Yenileme jetonunun benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Jetonun ait oldugu kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Yenileme jetonunun degeri.
@@ -28,11 +25,6 @@ public class UserRefreshToken
     /// Jetonun son gecerlilik tarihi.
     /// </summary>
     public DateTime ExpiresAt { get; set; }
-
-    /// <summary>
-    /// Jetonun olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// Jetonun iptal edildigi tarih.

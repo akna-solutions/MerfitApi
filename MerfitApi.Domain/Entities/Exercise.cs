@@ -3,19 +3,15 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// Exercise varligini temsil eder.
 /// </summary>
-public class Exercise
+public class Exercise : BaseEntity
 {
-    /// <summary>
-    /// Egzersizin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Egzersizin adi.
     /// </summary>
@@ -44,7 +40,7 @@ public class Exercise
     /// <summary>
     /// Egzersizin hedefledigi ana kas grubunun kimligi.
     /// </summary>
-    public Guid PrimaryMuscleGroupId { get; set; }
+    public long PrimaryMuscleGroupId { get; set; }
 
     /// <summary>
     /// Egzersiz icin gereken ekipman turunu belirten serbest metin.
@@ -70,14 +66,4 @@ public class Exercise
     /// Egzersizin aktif/yayinda olup olmadigi.
     /// </summary>
     public bool IsActive { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// Kaydin son guncellenme tarihi.
-    /// </summary>
-    public DateTime UpdatedAt { get; set; }
 }

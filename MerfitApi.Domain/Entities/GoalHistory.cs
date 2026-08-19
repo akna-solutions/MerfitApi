@@ -3,23 +3,19 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// GoalHistory varligini temsil eder.
 /// </summary>
-public class GoalHistory
+public class GoalHistory : BaseEntity
 {
-    /// <summary>
-    /// Hedef gecmisi kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Hedefi degistiren kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Degisiklikten onceki hedef.

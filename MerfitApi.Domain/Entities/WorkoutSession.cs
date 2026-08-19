@@ -3,28 +3,24 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// WorkoutSession varligini temsil eder.
 /// </summary>
-public class WorkoutSession
+public class WorkoutSession : BaseEntity
 {
-    /// <summary>
-    /// Antrenman oturumunun benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Oturumu gerceklestiren kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Gerceklestirilen antrenmanin kimligi.
     /// </summary>
-    public Guid WorkoutId { get; set; }
+    public long WorkoutId { get; set; }
 
     /// <summary>
     /// Oturumun baslangic tarihi/saati.
@@ -55,9 +51,4 @@ public class WorkoutSession
     /// Oturuma ait notlar.
     /// </summary>
     public string? Notes { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }

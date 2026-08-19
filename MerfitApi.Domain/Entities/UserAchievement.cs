@@ -2,27 +2,24 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// UserAchievement varligini temsil eder.
 /// </summary>
-public class UserAchievement
+public class UserAchievement : BaseEntity
 {
-    /// <summary>
-    /// Kullanici basarisi kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Basariyi kazanan kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Kazanilan basarinin kimligi.
     /// </summary>
-    public Guid AchievementId { get; set; }
+    public long AchievementId { get; set; }
 
     /// <summary>
     /// Basarinin kazanildigi tarih.

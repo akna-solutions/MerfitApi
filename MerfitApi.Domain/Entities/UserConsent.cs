@@ -2,27 +2,24 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// UserConsent varligini temsil eder.
 /// </summary>
-public class UserConsent
+public class UserConsent : BaseEntity
 {
-    /// <summary>
-    /// Onay kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Onayi veren kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Onaylanan yasal belgenin kimligi.
     /// </summary>
-    public Guid DocumentId { get; set; }
+    public long DocumentId { get; set; }
 
     /// <summary>
     /// Belgenin kabul edilip edilmedigi.

@@ -3,23 +3,19 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// UserProfile varligini temsil eder.
 /// </summary>
-public class UserProfile
+public class UserProfile : BaseEntity
 {
-    /// <summary>
-    /// Profilin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Profilin ait oldugu kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Kullanicinin adi.
@@ -100,14 +96,4 @@ public class UserProfile
     /// Kullanicinin tercih ettigi olcum birimi sistemi.
     /// </summary>
     public UnitSystem UnitSystem { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// Kaydin son guncellenme tarihi.
-    /// </summary>
-    public DateTime UpdatedAt { get; set; }
 }

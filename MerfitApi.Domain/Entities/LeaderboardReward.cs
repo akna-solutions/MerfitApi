@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// LeaderboardReward varligini temsil eder.
 /// </summary>
-public class LeaderboardReward
+public class LeaderboardReward : BaseEntity
 {
-    /// <summary>
-    /// Liderlik odulu kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Iliskili donemin kimligi.
     /// </summary>
-    public Guid LeaderboardPeriodId { get; set; }
+    public long LeaderboardPeriodId { get; set; }
 
     /// <summary>
     /// Odulun verildigi siralama araligi.
@@ -27,5 +24,5 @@ public class LeaderboardReward
     /// <summary>
     /// Verilecek odulun kimligi.
     /// </summary>
-    public Guid RewardId { get; set; }
+    public long RewardId { get; set; }
 }

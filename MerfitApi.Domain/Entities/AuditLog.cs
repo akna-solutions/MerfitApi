@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// AuditLog varligini temsil eder.
 /// </summary>
-public class AuditLog
+public class AuditLog : BaseEntity
 {
-    /// <summary>
-    /// Denetim kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Islemi gerceklestiren kullanicinin kimligi.
     /// </summary>
-    public Guid? UserId { get; set; }
+    public long? UserId { get; set; }
 
     /// <summary>
     /// Gerceklesen islemin adi (orn. LOGIN, PASSWORD_CHANGED).
@@ -32,7 +29,7 @@ public class AuditLog
     /// <summary>
     /// Islemin ilgili oldugu varlik kimligi.
     /// </summary>
-    public Guid? EntityId { get; set; }
+    public long? EntityId { get; set; }
 
     /// <summary>
     /// Islemin gerceklestigi IP adresi.
@@ -48,9 +45,4 @@ public class AuditLog
     /// Isleme dair ek verilerin JSON formatinda tutuldugu alan.
     /// </summary>
     public string? MetadataJson { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }

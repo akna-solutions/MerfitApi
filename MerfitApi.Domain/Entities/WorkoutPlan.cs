@@ -3,23 +3,19 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// WorkoutPlan varligini temsil eder.
 /// </summary>
-public class WorkoutPlan
+public class WorkoutPlan : BaseEntity
 {
-    /// <summary>
-    /// Antrenman planinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Planin ait oldugu kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Planin adi.
@@ -55,9 +51,4 @@ public class WorkoutPlan
     /// Planin yapay zeka tarafindan uretilip uretilmedigi.
     /// </summary>
     public bool IsAiGenerated { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }

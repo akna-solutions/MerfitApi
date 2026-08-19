@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// UserNotificationSetting varligini temsil eder.
 /// </summary>
-public class UserNotificationSetting
+public class UserNotificationSetting : BaseEntity
 {
-    /// <summary>
-    /// Bildirim ayari kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Ayarin ait oldugu kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Antrenman hatirlatma bildirimlerinin acik olup olmadigi.
@@ -48,14 +45,4 @@ public class UserNotificationSetting
     /// Urun guncelleme bildirimlerinin acik olup olmadigi.
     /// </summary>
     public bool ProductUpdates { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// Kaydin son guncellenme tarihi.
-    /// </summary>
-    public DateTime UpdatedAt { get; set; }
 }

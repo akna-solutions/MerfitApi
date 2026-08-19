@@ -3,23 +3,19 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// Meal varligini temsil eder.
 /// </summary>
-public class Meal
+public class Meal : BaseEntity
 {
-    /// <summary>
-    /// Ogun kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Ogunu kaydeden kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Ogunun tuketildigi tarih.
@@ -35,9 +31,4 @@ public class Meal
     /// Oguna ait notlar.
     /// </summary>
     public string? Notes { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }

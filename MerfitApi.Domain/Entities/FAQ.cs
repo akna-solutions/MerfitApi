@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// FAQ varligini temsil eder.
 /// </summary>
-public class FAQ
+public class FAQ : BaseEntity
 {
-    /// <summary>
-    /// SSS kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Iliskili SSS kategorisinin kimligi.
     /// </summary>
-    public Guid CategoryId { get; set; }
+    public long CategoryId { get; set; }
 
     /// <summary>
     /// Sorulan soru metni.

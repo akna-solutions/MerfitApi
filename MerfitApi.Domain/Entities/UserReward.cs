@@ -3,33 +3,29 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// UserReward varligini temsil eder.
 /// </summary>
-public class UserReward
+public class UserReward : BaseEntity
 {
-    /// <summary>
-    /// Kullanici odulu kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Odulu kazanan kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Kazanilan odulun kimligi.
     /// </summary>
-    public Guid RewardId { get; set; }
+    public long RewardId { get; set; }
 
     /// <summary>
     /// Odulun kazanildigi liderlik donemi kimligi.
     /// </summary>
-    public Guid? LeaderboardPeriodId { get; set; }
+    public long? LeaderboardPeriodId { get; set; }
 
     /// <summary>
     /// Odulun kazanildigi sirlama.
@@ -45,9 +41,4 @@ public class UserReward
     /// Odulun teslim alindigi tarih.
     /// </summary>
     public DateTime? ClaimedAt { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }

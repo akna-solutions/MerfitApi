@@ -2,18 +2,15 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// ApplicationUser varligini temsil eder.
 /// </summary>
-public class ApplicationUser
+public class ApplicationUser : BaseEntity
 {
-    /// <summary>
-    /// Kullanicinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Kullanicinin e-posta adresi.
     /// </summary>
@@ -63,16 +60,6 @@ public class ApplicationUser
     /// Kullanici hesabinin aktif olup olmadigi.
     /// </summary>
     public bool IsActive { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// Kaydin son guncellenme tarihi.
-    /// </summary>
-    public DateTime UpdatedAt { get; set; }
 
     /// <summary>
     /// Kullanicinin son giris yaptigi tarih.

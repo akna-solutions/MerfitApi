@@ -1,21 +1,17 @@
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// AiGenerationRequest varligini temsil eder.
 /// </summary>
-public class AiGenerationRequest
+public class AiGenerationRequest : BaseEntity
 {
-    /// <summary>
-    /// Yapay zeka uretim istegi kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Istegi olusturan kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Istegin turu.
@@ -46,9 +42,4 @@ public class AiGenerationRequest
     /// Uretimin tamamlanma tarihi.
     /// </summary>
     public DateTime? CompletedAt { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }

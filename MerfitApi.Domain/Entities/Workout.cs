@@ -3,19 +3,15 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Entities.Enums;
+using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// Workout varligini temsil eder.
 /// </summary>
-public class Workout
+public class Workout : BaseEntity
 {
-    /// <summary>
-    /// Antrenmanin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Antrenmanin basligi.
     /// </summary>
@@ -49,12 +45,12 @@ public class Workout
     /// <summary>
     /// Antrenmanin bagli oldugu kategorinin kimligi.
     /// </summary>
-    public Guid CategoryId { get; set; }
+    public long CategoryId { get; set; }
 
     /// <summary>
     /// Antrenmanin hedefledigi ana kas grubunun kimligi.
     /// </summary>
-    public Guid? MuscleGroupId { get; set; }
+    public long? MuscleGroupId { get; set; }
 
     /// <summary>
     /// Antrenman gorselinin adresi.
@@ -75,16 +71,6 @@ public class Workout
     /// Antrenmanin yapay zeka tarafindan uretilip uretilmedigi.
     /// </summary>
     public bool IsAiGenerated { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// Kaydin son guncellenme tarihi.
-    /// </summary>
-    public DateTime UpdatedAt { get; set; }
 
     /// <summary>
     /// Antrenmanin aktif/yayinda olup olmadigi.

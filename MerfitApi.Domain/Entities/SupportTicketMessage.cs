@@ -2,35 +2,27 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// SupportTicketMessage varligini temsil eder.
 /// </summary>
-public class SupportTicketMessage
+public class SupportTicketMessage : BaseEntity
 {
-    /// <summary>
-    /// Talep mesajinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Iliskili destek talebinin kimligi.
     /// </summary>
-    public Guid TicketId { get; set; }
+    public long TicketId { get; set; }
 
     /// <summary>
     /// Mesaji gonderen kullanicinin kimligi.
     /// </summary>
-    public Guid SenderUserId { get; set; }
+    public long SenderUserId { get; set; }
 
     /// <summary>
     /// Mesaj icerigi.
     /// </summary>
     public string Message { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Mesajin gonderilme tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
 }

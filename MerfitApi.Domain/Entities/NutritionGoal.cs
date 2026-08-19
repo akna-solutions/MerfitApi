@@ -2,22 +2,19 @@
 // Bu dosya Claude tarafindan MerfitApi.Domain.Entities namespace'i icin olusturulmustur.
 // </auto-generated>
 
+using MerfitApi.Domain.Common;
+
 namespace MerfitApi.Domain.Entities;
 
 /// <summary>
 /// NutritionGoal varligini temsil eder.
 /// </summary>
-public class NutritionGoal
+public class NutritionGoal : BaseEntity
 {
-    /// <summary>
-    /// Beslenme hedefi kaydinin benzersiz kimligi.
-    /// </summary>
-    public Guid Id { get; set; }
-
     /// <summary>
     /// Hedefin ait oldugu kullanicinin kimligi.
     /// </summary>
-    public Guid UserId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
     /// Gunluk hedeflenen kalori miktari.
@@ -43,14 +40,4 @@ public class NutritionGoal
     /// Gunluk hedeflenen su miktari (mililitre).
     /// </summary>
     public decimal WaterTargetMl { get; set; }
-
-    /// <summary>
-    /// Kaydin olusturulma tarihi.
-    /// </summary>
-    public DateTime CreatedAt { get; set; }
-
-    /// <summary>
-    /// Kaydin son guncellenme tarihi.
-    /// </summary>
-    public DateTime UpdatedAt { get; set; }
 }
