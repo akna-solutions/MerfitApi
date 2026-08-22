@@ -49,16 +49,6 @@ public class AuthService : IAuthService
         var (firstName, lastName) = SplitName(request.Name);
 
         var equipmentIds = (request.EquipmentIds ?? new List<long>()).Distinct().ToList();
-        IReadOnlyList<Equipment> equipments = Array.Empty<Equipment>();
-        if (equipmentIds.Count > 0)
-        {
-            var equipmentRepo = _unitOfWork.Repository<Equipment>();
-            equipments = await equipmentRepo.FindAsync(e => equipmentIds.Contains(e.Id));
-            if (equipments.Count != equipmentIds.Count)
-            {
-                throw new AppValidationException(nameof(request.EquipmentIds), "Gecersiz ekipman kimligi (id) gonderildi.");
-            }
-        }
 
         await _unitOfWork.BeginTransactionAsync();
         var user = new ApplicationUser
@@ -89,13 +79,13 @@ public class AuthService : IAuthService
             DateOfBirth = request.Age.HasValue
                 ? DateTime.UtcNow.Date.AddYears(-request.Age.Value)
                 : null,
-            Gender = request.Gender,
+            Gender = ParseGender(request.Gender),
             HeightCm = heightCm,
             WeightKg = weightKg,
-            Goal = request.Goal,
-            ExperienceLevel = request.TrainingExperience,
-            ActivityLevel = request.ActivityLevel,
-            TrainingLocation = request.TrainingLocation,
+            Goal = ParseFitnessGoal(request.Goal),
+            ExperienceLevel = ParseExperienceLevel(request.TrainingExperience),
+            ActivityLevel = ParseActivityLevel(request.ActivityLevel),
+            TrainingLocation = ParseTrainingLocation(request.TrainingLocation),
             TrainingDaysPerWeek = request.TrainingDays,
             UnitSystem = unitSystem,
             CreatedAt = DateTime.UtcNow,
@@ -225,5 +215,80 @@ public class AuthService : IAuthService
         }
 
         return candidate;
+    }
+
+    private static Gender? ParseGender(string? genderStr)
+    {
+        if (string.IsNullOrWhiteSpace(genderStr))
+            return null;
+
+        return genderStr.ToLowerInvariant() switch
+        {
+            "male" => Gender.Male,
+            "female" => Gender.Female,
+            "other" => Gender.Other,
+            _ => null,
+        };
+    }
+
+    private static FitnessGoal? ParseFitnessGoal(string? goalStr)
+    {
+        if (string.IsNullOrWhiteSpace(goalStr))
+            return null;
+
+        return goalStr.ToLowerInvariant() switch
+        {
+            "lose_weight" => FitnessGoal.LoseWeight,
+            "build_muscle" => FitnessGoal.BuildMuscle,
+            "get_stronger" => FitnessGoal.GetStronger,
+            "improve_fitness" => FitnessGoal.ImproveFitness,
+            "maintain_weight" => FitnessGoal.MaintainWeight,
+            "improve_endurance" => FitnessGoal.ImproveEndurance,
+            _ => null,
+        };
+    }
+
+    private static ExperienceLevel? ParseExperienceLevel(string? levelStr)
+    {
+        if (string.IsNullOrWhiteSpace(levelStr))
+            return null;
+
+        return levelStr.ToLowerInvariant() switch
+        {
+            "beginner" => ExperienceLevel.Beginner,
+            "intermediate" => ExperienceLevel.Intermediate,
+            "advanced" => ExperienceLevel.Advanced,
+            _ => null,
+        };
+    }
+
+    private static ActivityLevel? ParseActivityLevel(string? activityStr)
+    {
+        if (string.IsNullOrWhiteSpace(activityStr))
+            return null;
+
+        return activityStr.ToLowerInvariant() switch
+        {
+            "sedentary" => ActivityLevel.Sedentary,
+            "light" => ActivityLevel.LightlyActive,
+            "moderate" => ActivityLevel.ModeratelyActive,
+            "active" => ActivityLevel.VeryActive,
+            "athlete" => ActivityLevel.ExtraActive,
+            _ => null,
+        };
+    }
+
+    private static TrainingLocation? ParseTrainingLocation(string? locationStr)
+    {
+        if (string.IsNullOrWhiteSpace(locationStr))
+            return null;
+
+        return locationStr.ToLowerInvariant() switch
+        {
+            "gym" => TrainingLocation.Gym,
+            "home" => TrainingLocation.Home,
+            "outdoor" => TrainingLocation.Outdoor,
+            _ => null,
+        };
     }
 }

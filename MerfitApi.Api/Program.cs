@@ -3,6 +3,7 @@ using MerfitApi.Business.Interfaces;
 using MerfitApi.Business.Interfaces.Services;
 using MerfitApi.Business.Services.Auth;
 using MerfitApi.Business.Services.TokenService;
+using MerfitApi.Domain.Interfaces;
 using MerfitApi.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
