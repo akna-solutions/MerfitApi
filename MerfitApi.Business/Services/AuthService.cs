@@ -5,9 +5,7 @@ using MerfitApi.Domain.Entities;
 using MerfitApi.Domain.Entities.Enums;
 using MerfitApi.Domain.Exceptions;
 using MerfitApi.Domain.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using System.Net.Http;
 
 namespace MerfitApi.Business.Services.Auth;
 
@@ -28,14 +26,14 @@ public class AuthService : IAuthService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+    public async Task<AuthResponse> RegisterAsync(RegisterRequest request, string? ipAddress, CancellationToken cancellationToken = default)
     {
         ValidateAccountFields(request);
 
         var normalizedEmail = request.Email.Trim().ToUpperInvariant();
 
         var userRepo = _unitOfWork.Repository<ApplicationUser>();
-        var emailTaken = await userRepo.AnyAsync(u => u.NormalizedEmail == normalizedEmail);
+        var emailTaken = await userRepo.AnyAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
         if (emailTaken)
         {
             throw new ConflictException("Bu e-posta adresi ile kayitli bir hesap zaten mevcut.");
@@ -50,7 +48,19 @@ public class AuthService : IAuthService
 
         var (firstName, lastName) = SplitName(request.Name);
 
-        await _unitOfWork.BeginTransactionAsync();
+        var equipmentIds = (request.EquipmentIds ?? new List<long>()).Distinct().ToList();
+        IReadOnlyList<Equipment> equipments = Array.Empty<Equipment>();
+        if (equipmentIds.Count > 0)
+        {
+            var equipmentRepo = _unitOfWork.Repository<Equipment>();
+            equipments = await equipmentRepo.FindAsync(e => equipmentIds.Contains(e.Id), cancellationToken);
+            if (equipments.Count != equipmentIds.Count)
+            {
+                throw new AppValidationException(nameof(request.EquipmentIds), "Gecersiz ekipman kimligi (id) gonderildi.");
+            }
+        }
+
+        await _unitOfWork.BeginTransactionAsync(cancellationToken);
         var user = new ApplicationUser
         {
             Email = request.Email.Trim(),
@@ -65,10 +75,10 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow,
         };
 
-        await userRepo.AddAsync(user);
-        await _unitOfWork.SaveChangesAsync();
+        await userRepo.AddAsync(user, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var username = await GenerateUniqueUsernameAsync(request.Email);
+        var username = await GenerateUniqueUsernameAsync(request.Email, cancellationToken);
 
         var profile = new UserProfile
         {
@@ -91,7 +101,19 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow,
         };
 
-        await _unitOfWork.Repository<UserProfile>().AddAsync(profile);
+        await _unitOfWork.Repository<UserProfile>().AddAsync(profile, cancellationToken);
+
+        if (equipmentIds.Count > 0)
+        {
+            var userEquipments = equipmentIds.Select(equipmentId => new UserEquipment
+            {
+                UserId = user.Id,
+                EquipmentId = equipmentId,
+                CreatedAt = DateTime.UtcNow,
+            });
+
+            await _unitOfWork.Repository<UserEquipment>().AddRangeAsync(userEquipments, cancellationToken);
+        }
 
         var (accessToken, expiresAt) = _tokenService.GenerateAccessToken(user);
         var refreshTokenValue = _tokenService.GenerateRefreshToken();
@@ -101,15 +123,15 @@ public class AuthService : IAuthService
             UserId = user.Id,
             Token = refreshTokenValue,
             ExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
-            CreatedByIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+            CreatedByIp = ipAddress,
             IsRevoked = false,
             IsUsed = false,
             CreatedAt = DateTime.UtcNow,
         };
 
-        await _unitOfWork.Repository<UserRefreshToken>().AddAsync(refreshToken);
+        await _unitOfWork.Repository<UserRefreshToken>().AddAsync(refreshToken, cancellationToken);
 
-        await _unitOfWork.CommitTransactionAsync();
+        await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
         return new AuthResponse
         {
