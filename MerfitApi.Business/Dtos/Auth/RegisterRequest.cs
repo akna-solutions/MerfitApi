@@ -74,9 +74,8 @@ public class RegisterRequest
     public string? TrainingLocation { get; set; }
 
     /// <summary>
-    /// EquipmentStep'te secilen ekipman listesi (dumbbells, barbell, bands, machines, pullup_bar, kettlebell, none).
-    /// Not: Mevcut veritabani semasinda kullaniciya ozel ekipman secimini tutan bir tablo bulunmadigindan
-    /// bu alan su an icin sadece kabul edilir, kalici olarak saklanmaz.
+    /// EquipmentStep'te secilen ekipmanlarin Equipment tablosundaki kimlikleri (Id).
+    /// Register sirasinda UserEquipment kayitlarini olusturmak icin kullanilir.
     /// </summary>
-    public List<string>? Equipment { get; set; }
+    public List<long>? EquipmentIds { get; set; }
 }

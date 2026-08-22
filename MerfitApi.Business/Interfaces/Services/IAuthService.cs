@@ -12,5 +12,5 @@ public interface IAuthService
     /// </summary>
     /// <exception cref="Domain.Exceptions.ConflictException">E-posta zaten kayitliysa firlatilir.</exception>
     /// <exception cref="Domain.Exceptions.AppValidationException">Is kurali ihlallerinde firlatilir.</exception>
-    Task<AuthResponse> RegisterAsync(RegisterRequest request, string? ipAddress, CancellationToken cancellationToken = default);
+    Task<AuthResponse> RegisterAsync(RegisterRequest request, string? ipAddress);
 }

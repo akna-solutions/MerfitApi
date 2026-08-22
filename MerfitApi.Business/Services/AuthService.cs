@@ -5,9 +5,7 @@ using MerfitApi.Domain.Entities;
 using MerfitApi.Domain.Entities.Enums;
 using MerfitApi.Domain.Exceptions;
 using MerfitApi.Domain.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using System.Net.Http;
 
 namespace MerfitApi.Business.Services.Auth;
 
@@ -28,7 +26,7 @@ public class AuthService : IAuthService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+    public async Task<AuthResponse> RegisterAsync(RegisterRequest request, string? ipAddress)
     {
         ValidateAccountFields(request);
 
@@ -49,6 +47,18 @@ public class AuthService : IAuthService
             : UnitSystem.Metric;
 
         var (firstName, lastName) = SplitName(request.Name);
+
+        var equipmentIds = (request.EquipmentIds ?? new List<long>()).Distinct().ToList();
+        IReadOnlyList<Equipment> equipments = Array.Empty<Equipment>();
+        if (equipmentIds.Count > 0)
+        {
+            var equipmentRepo = _unitOfWork.Repository<Equipment>();
+            equipments = await equipmentRepo.FindAsync(e => equipmentIds.Contains(e.Id));
+            if (equipments.Count != equipmentIds.Count)
+            {
+                throw new AppValidationException(nameof(request.EquipmentIds), "Gecersiz ekipman kimligi (id) gonderildi.");
+            }
+        }
 
         await _unitOfWork.BeginTransactionAsync();
         var user = new ApplicationUser
@@ -93,6 +103,18 @@ public class AuthService : IAuthService
 
         await _unitOfWork.Repository<UserProfile>().AddAsync(profile);
 
+        if (equipmentIds.Count > 0)
+        {
+            var userEquipments = equipmentIds.Select(equipmentId => new UserEquipment
+            {
+                UserId = user.Id,
+                EquipmentId = equipmentId,
+                CreatedAt = DateTime.UtcNow,
+            });
+
+            await _unitOfWork.Repository<UserEquipment>().AddRangeAsync(userEquipments);
+        }
+
         var (accessToken, expiresAt) = _tokenService.GenerateAccessToken(user);
         var refreshTokenValue = _tokenService.GenerateRefreshToken();
 
@@ -101,7 +123,7 @@ public class AuthService : IAuthService
             UserId = user.Id,
             Token = refreshTokenValue,
             ExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
-            CreatedByIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+            CreatedByIp = ipAddress,
             IsRevoked = false,
             IsUsed = false,
             CreatedAt = DateTime.UtcNow,
@@ -178,7 +200,7 @@ public class AuthService : IAuthService
     /// RN onboarding akisi ayrica bir "kullanici adi" toplamadigindan, e-postanin
     /// yerel kismindan (@'den once) benzersiz bir kullanici adi turetir.
     /// </summary>
-    private async Task<string> GenerateUniqueUsernameAsync(string email, CancellationToken cancellationToken)
+    private async Task<string> GenerateUniqueUsernameAsync(string email)
     {
         var baseUsername = email.Split('@')[0].Trim().ToLowerInvariant();
         if (string.IsNullOrWhiteSpace(baseUsername))
@@ -190,7 +212,7 @@ public class AuthService : IAuthService
         var candidate = baseUsername;
         var attempt = 0;
 
-        while (await profileRepo.AnyAsync(p => p.Username == candidate, cancellationToken))
+        while (await profileRepo.AnyAsync(p => p.Username == candidate))
         {
             attempt++;
             candidate = $"{baseUsername}{Random.Shared.Next(1000, 9999)}";
