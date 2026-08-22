@@ -24,10 +24,10 @@ public class AuthController : ControllerBase
     /// boylece mobil uygulama kayittan sonra ayrica login yapmadan dashboard'a gecebilir.
     /// </summary>
     [HttpPost("register")]
-    public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-        var result = await _authService.RegisterAsync(request, ipAddress, cancellationToken);
+        var result = await _authService.RegisterAsync(request, ipAddress);
 
         return StatusCode(StatusCodes.Status201Created, result);
     }

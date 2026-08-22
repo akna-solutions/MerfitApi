@@ -26,14 +26,14 @@ public class AuthService : IAuthService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public async Task<AuthResponse> RegisterAsync(RegisterRequest request, string? ipAddress, CancellationToken cancellationToken = default)
+    public async Task<AuthResponse> RegisterAsync(RegisterRequest request, string? ipAddress)
     {
         ValidateAccountFields(request);
 
         var normalizedEmail = request.Email.Trim().ToUpperInvariant();
 
         var userRepo = _unitOfWork.Repository<ApplicationUser>();
-        var emailTaken = await userRepo.AnyAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
+        var emailTaken = await userRepo.AnyAsync(u => u.NormalizedEmail == normalizedEmail);
         if (emailTaken)
         {
             throw new ConflictException("Bu e-posta adresi ile kayitli bir hesap zaten mevcut.");
@@ -53,14 +53,14 @@ public class AuthService : IAuthService
         if (equipmentIds.Count > 0)
         {
             var equipmentRepo = _unitOfWork.Repository<Equipment>();
-            equipments = await equipmentRepo.FindAsync(e => equipmentIds.Contains(e.Id), cancellationToken);
+            equipments = await equipmentRepo.FindAsync(e => equipmentIds.Contains(e.Id));
             if (equipments.Count != equipmentIds.Count)
             {
                 throw new AppValidationException(nameof(request.EquipmentIds), "Gecersiz ekipman kimligi (id) gonderildi.");
             }
         }
 
-        await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        await _unitOfWork.BeginTransactionAsync();
         var user = new ApplicationUser
         {
             Email = request.Email.Trim(),
@@ -75,10 +75,10 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow,
         };
 
-        await userRepo.AddAsync(user, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await userRepo.AddAsync(user);
+        await _unitOfWork.SaveChangesAsync();
 
-        var username = await GenerateUniqueUsernameAsync(request.Email, cancellationToken);
+        var username = await GenerateUniqueUsernameAsync(request.Email);
 
         var profile = new UserProfile
         {
@@ -101,7 +101,7 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow,
         };
 
-        await _unitOfWork.Repository<UserProfile>().AddAsync(profile, cancellationToken);
+        await _unitOfWork.Repository<UserProfile>().AddAsync(profile);
 
         if (equipmentIds.Count > 0)
         {
@@ -112,7 +112,7 @@ public class AuthService : IAuthService
                 CreatedAt = DateTime.UtcNow,
             });
 
-            await _unitOfWork.Repository<UserEquipment>().AddRangeAsync(userEquipments, cancellationToken);
+            await _unitOfWork.Repository<UserEquipment>().AddRangeAsync(userEquipments);
         }
 
         var (accessToken, expiresAt) = _tokenService.GenerateAccessToken(user);
@@ -129,9 +129,9 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow,
         };
 
-        await _unitOfWork.Repository<UserRefreshToken>().AddAsync(refreshToken, cancellationToken);
+        await _unitOfWork.Repository<UserRefreshToken>().AddAsync(refreshToken);
 
-        await _unitOfWork.CommitTransactionAsync(cancellationToken);
+        await _unitOfWork.CommitTransactionAsync();
 
         return new AuthResponse
         {
@@ -200,7 +200,7 @@ public class AuthService : IAuthService
     /// RN onboarding akisi ayrica bir "kullanici adi" toplamadigindan, e-postanin
     /// yerel kismindan (@'den once) benzersiz bir kullanici adi turetir.
     /// </summary>
-    private async Task<string> GenerateUniqueUsernameAsync(string email, CancellationToken cancellationToken)
+    private async Task<string> GenerateUniqueUsernameAsync(string email)
     {
         var baseUsername = email.Split('@')[0].Trim().ToLowerInvariant();
         if (string.IsNullOrWhiteSpace(baseUsername))
@@ -212,7 +212,7 @@ public class AuthService : IAuthService
         var candidate = baseUsername;
         var attempt = 0;
 
-        while (await profileRepo.AnyAsync(p => p.Username == candidate, cancellationToken))
+        while (await profileRepo.AnyAsync(p => p.Username == candidate))
         {
             attempt++;
             candidate = $"{baseUsername}{Random.Shared.Next(1000, 9999)}";
