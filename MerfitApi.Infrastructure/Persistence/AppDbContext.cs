@@ -74,6 +74,11 @@ public class AppDbContext : DbContext
     public DbSet<Equipment> Equipments => Set<Equipment>();
 
     /// <summary>
+    /// UserEquipment kayitlarina erisim saglayan DbSet.
+    /// </summary>
+    public DbSet<UserEquipment> UserEquipments => Set<UserEquipment>();
+
+    /// <summary>
     /// Exercise kayitlarina erisim saglayan DbSet.
     /// </summary>
     public DbSet<Exercise> Exercises => Set<Exercise>();
