@@ -7,10 +7,9 @@ namespace MerfitApi.Business.Dtos.Auth;
 /// </summary>
 public class LoginRequest
 {
-    /// <summary>Kullanicinin e-posta adresi.</summary>
-    [Required(ErrorMessage = "E-posta alani zorunludur.")]
-    [EmailAddress(ErrorMessage = "Gecerli bir e-posta adresi giriniz.")]
-    public string Email { get; set; } = string.Empty;
+    /// <summary>Kullanicinin e-posta adresi veya kullanici adi.</summary>
+    [Required(ErrorMessage = "E-posta veya kullanici adi zorunludur.")]
+    public string EmailOrUsername { get; set; } = string.Empty;
 
     /// <summary>Kullanicinin parolasi.</summary>
     [Required(ErrorMessage = "Parola alani zorunludur.")]

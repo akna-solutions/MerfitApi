@@ -136,14 +136,13 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request, string? ipAddress)
     {
-        var normalizedEmail = request.Email.Trim().ToUpperInvariant();
+        var identifier = request.EmailOrUsername.Trim();
 
-        var userRepo = _unitOfWork.Repository<ApplicationUser>();
-        var user = await userRepo.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
+        var user = await FindUserByEmailOrUsernameAsync(identifier);
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            throw new UnauthorizedException("E-posta veya parola hatali.");
+            throw new UnauthorizedException("E-posta/kullanici adi veya parola hatali.");
         }
 
         if (!user.IsActive)
@@ -154,7 +153,7 @@ public class AuthService : IAuthService
         var profile = await _unitOfWork.Repository<UserProfile>().FirstOrDefaultAsync(p => p.UserId == user.Id);
 
         user.LastLoginAt = DateTime.UtcNow;
-        userRepo.Update(user);
+        _unitOfWork.Repository<ApplicationUser>().Update(user);
 
         var (accessToken, expiresAt) = _tokenService.GenerateAccessToken(user);
         var refreshTokenValue = _tokenService.GenerateRefreshToken();
@@ -182,6 +181,27 @@ public class AuthService : IAuthService
             RefreshToken = refreshTokenValue,
             AccessTokenExpiresAt = expiresAt,
         };
+    }
+
+    /// <summary>
+    /// Girilen degeri once e-posta, bulunamazsa kullanici adi (UserProfile.Username) olarak arar.
+    /// </summary>
+    private async Task<ApplicationUser?> FindUserByEmailOrUsernameAsync(string identifier)
+    {
+        var userRepo = _unitOfWork.Repository<ApplicationUser>();
+
+        var normalizedEmail = identifier.ToUpperInvariant();
+        var user = await userRepo.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
+        if (user is not null)
+        {
+            return user;
+        }
+
+        var normalizedUsername = identifier.ToLowerInvariant();
+        var profile = await _unitOfWork.Repository<UserProfile>()
+            .FirstOrDefaultAsync(p => p.Username == normalizedUsername);
+
+        return profile is null ? null : await userRepo.GetByIdAsync(profile.UserId);
     }
 
     private static void ValidateAccountFields(RegisterRequest request)

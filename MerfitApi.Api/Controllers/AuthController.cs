@@ -33,7 +33,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Var olan bir MERFIT hesabi ile e-posta/parola kullanarak giris yapar ve
+    /// Var olan bir MERFIT hesabi ile e-posta veya kullanici adi ve parola kullanarak giris yapar ve
     /// dogrudan kullanilabilir bir access/refresh token cifti doner.
     /// </summary>
     [HttpPost("login")]
