@@ -1,4 +1,5 @@
-﻿using MerfitApi.Domain.Interfaces.Repositories;
+﻿
+using MerfitApi.Domain.Interfaces.Repositories;
 
 namespace MerfitApi.Domain.Interfaces;
 
