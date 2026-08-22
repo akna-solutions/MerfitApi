@@ -134,6 +134,76 @@ public class AuthService : IAuthService
         };
     }
 
+    public async Task<AuthResponse> LoginAsync(LoginRequest request, string? ipAddress)
+    {
+        var identifier = request.EmailOrUsername.Trim();
+
+        var user = await FindUserByEmailOrUsernameAsync(identifier);
+
+        if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        {
+            throw new UnauthorizedException("E-posta/kullanici adi veya parola hatali.");
+        }
+
+        if (!user.IsActive)
+        {
+            throw new UnauthorizedException("Hesabiniz aktif degil.");
+        }
+
+        var profile = await _unitOfWork.Repository<UserProfile>().FirstOrDefaultAsync(p => p.UserId == user.Id);
+
+        user.LastLoginAt = DateTime.UtcNow;
+        _unitOfWork.Repository<ApplicationUser>().Update(user);
+
+        var (accessToken, expiresAt) = _tokenService.GenerateAccessToken(user);
+        var refreshTokenValue = _tokenService.GenerateRefreshToken();
+
+        var refreshToken = new UserRefreshToken
+        {
+            UserId = user.Id,
+            Token = refreshTokenValue,
+            ExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
+            CreatedByIp = ipAddress,
+            IsRevoked = false,
+            IsUsed = false,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        await _unitOfWork.Repository<UserRefreshToken>().AddAsync(refreshToken);
+        await _unitOfWork.SaveChangesAsync();
+
+        return new AuthResponse
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            Name = profile is not null ? $"{profile.FirstName} {profile.LastName}".Trim() : string.Empty,
+            AccessToken = accessToken,
+            RefreshToken = refreshTokenValue,
+            AccessTokenExpiresAt = expiresAt,
+        };
+    }
+
+    /// <summary>
+    /// Girilen degeri once e-posta, bulunamazsa kullanici adi (UserProfile.Username) olarak arar.
+    /// </summary>
+    private async Task<ApplicationUser?> FindUserByEmailOrUsernameAsync(string identifier)
+    {
+        var userRepo = _unitOfWork.Repository<ApplicationUser>();
+
+        var normalizedEmail = identifier.ToUpperInvariant();
+        var user = await userRepo.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
+        if (user is not null)
+        {
+            return user;
+        }
+
+        var normalizedUsername = identifier.ToLowerInvariant();
+        var profile = await _unitOfWork.Repository<UserProfile>()
+            .FirstOrDefaultAsync(p => p.Username == normalizedUsername);
+
+        return profile is null ? null : await userRepo.GetByIdAsync(profile.UserId);
+    }
+
     private static void ValidateAccountFields(RegisterRequest request)
     {
         if (request.Password != request.ConfirmPassword)
