@@ -134,6 +134,56 @@ public class AuthService : IAuthService
         };
     }
 
+    public async Task<AuthResponse> LoginAsync(LoginRequest request, string? ipAddress)
+    {
+        var normalizedEmail = request.Email.Trim().ToUpperInvariant();
+
+        var userRepo = _unitOfWork.Repository<ApplicationUser>();
+        var user = await userRepo.FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
+
+        if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        {
+            throw new UnauthorizedException("E-posta veya parola hatali.");
+        }
+
+        if (!user.IsActive)
+        {
+            throw new UnauthorizedException("Hesabiniz aktif degil.");
+        }
+
+        var profile = await _unitOfWork.Repository<UserProfile>().FirstOrDefaultAsync(p => p.UserId == user.Id);
+
+        user.LastLoginAt = DateTime.UtcNow;
+        userRepo.Update(user);
+
+        var (accessToken, expiresAt) = _tokenService.GenerateAccessToken(user);
+        var refreshTokenValue = _tokenService.GenerateRefreshToken();
+
+        var refreshToken = new UserRefreshToken
+        {
+            UserId = user.Id,
+            Token = refreshTokenValue,
+            ExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
+            CreatedByIp = ipAddress,
+            IsRevoked = false,
+            IsUsed = false,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        await _unitOfWork.Repository<UserRefreshToken>().AddAsync(refreshToken);
+        await _unitOfWork.SaveChangesAsync();
+
+        return new AuthResponse
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            Name = profile is not null ? $"{profile.FirstName} {profile.LastName}".Trim() : string.Empty,
+            AccessToken = accessToken,
+            RefreshToken = refreshTokenValue,
+            AccessTokenExpiresAt = expiresAt,
+        };
+    }
+
     private static void ValidateAccountFields(RegisterRequest request)
     {
         if (request.Password != request.ConfirmPassword)

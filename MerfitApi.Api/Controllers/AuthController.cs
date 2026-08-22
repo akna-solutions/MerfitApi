@@ -31,4 +31,17 @@ public class AuthController : ControllerBase
 
         return StatusCode(StatusCodes.Status201Created, result);
     }
+
+    /// <summary>
+    /// Var olan bir MERFIT hesabi ile e-posta/parola kullanarak giris yapar ve
+    /// dogrudan kullanilabilir bir access/refresh token cifti doner.
+    /// </summary>
+    [HttpPost("login")]
+    public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
+    {
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var result = await _authService.LoginAsync(request, ipAddress);
+
+        return Ok(result);
+    }
 }
