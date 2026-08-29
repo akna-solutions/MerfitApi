@@ -3,6 +3,7 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Common;
+using MerfitApi.Domain.Entities.Enums;
 
 namespace MerfitApi.Domain.Entities;
 
@@ -60,6 +61,14 @@ public class ApplicationUser : BaseEntity
     /// Kullanici hesabinin aktif olup olmadigi.
     /// </summary>
     public bool IsActive { get; set; }
+
+    /// <summary>
+    /// Kullanicinin yetki seviyesi (User/Admin/SuperAdmin). JWT "role" claim'ine yazilir ve
+    /// Admin API'nin [Authorize(Policy = "AdminOnly")] kontrolu bu alana gore calisir.
+    /// Varsayilan olarak tum yeni kayitlar "User" rolundedir; admin kullanicilar veritabaninda
+    /// veya ileride eklenecek bir "promote to admin" akisiyla elle atanir.
+    /// </summary>
+    public UserRole Role { get; set; } = UserRole.User;
 
     /// <summary>
     /// Kullanicinin son giris yaptigi tarih.

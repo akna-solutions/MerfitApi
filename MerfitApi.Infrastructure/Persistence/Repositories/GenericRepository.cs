@@ -37,6 +37,16 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
     }
 
     /// <summary>
+    /// Bu entity turune ait IQueryable'i dondurur; admin panelindeki liste uc noktalarinda
+    /// dinamik filtreleme, siralama ve sayfalama database tarafinda uygulanabilsin diye kullanilir.
+    /// </summary>
+    /// <param name="asNoTracking">true ise (varsayilan) AsNoTracking() uygulanir.</param>
+    public virtual IQueryable<TEntity> GetQueryable(bool asNoTracking = true)
+    {
+        return asNoTracking ? DbSet.AsNoTracking() : DbSet;
+    }
+
+    /// <summary>
     /// Verilen birincil anahtar (id) degerine sahip kaydi asenkron olarak getirir.
     /// </summary>
     /// <param name="id">Aranan kaydin birincil anahtar degeri.</param>

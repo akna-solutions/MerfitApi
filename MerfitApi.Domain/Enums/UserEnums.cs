@@ -171,3 +171,24 @@ public enum Platform
     /// </summary>
     Web
 }
+
+/// <summary>
+/// Kullanicinin sisteme erisim yetki seviyesini (rolunu) ifade eder.
+/// JWT icerisine "role" claim'i olarak eklenir ve Admin API'nin
+/// [Authorize(Policy = "AdminOnly")] kontrolunde kullanilir.
+/// </summary>
+public enum UserRole
+{
+    /// <summary>
+    /// Standart mobil uygulama kullanicisi. Admin API'ye erisemez.
+    /// </summary>
+    User,
+    /// <summary>
+    /// Admin panelindeki operasyonel islemleri (icerik, kullanici, destek vb.) yonetebilen kullanici.
+    /// </summary>
+    Admin,
+    /// <summary>
+    /// Tum admin yetkilerine ek olarak sistem duzeyinde hassas islemleri yapabilen ust duzey yonetici.
+    /// </summary>
+    SuperAdmin
+}

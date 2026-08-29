@@ -53,5 +53,18 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(x => x.PhoneNumber)
             .IsRequired(false)
             .HasMaxLength(300);
+
+        // Kullanicinin yetki seviyesi (User/Admin/SuperAdmin); okunabilirlik icin string olarak saklanir.
+        builder.Property(x => x.Role)
+            .IsRequired(true)
+            .HasMaxLength(50)
+            .HasConversion<string>()
+            .HasDefaultValue(MerfitApi.Domain.Entities.Enums.UserRole.User);
+
+        // Admin panelinde role gore filtreleme/istatistik sorgulari icin indeks.
+        builder.HasIndex(x => x.Role);
+
+        // Soft-delete + aktiflik durumuna gore filtrelenen admin kullanici listeleri icin indeks.
+        builder.HasIndex(x => new { x.IsActive, x.DeletedAt });
     }
 }

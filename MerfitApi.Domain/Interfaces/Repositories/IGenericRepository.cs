@@ -9,6 +9,17 @@ namespace MerfitApi.Domain.Interfaces.Repositories;
 public interface IGenericRepository<TEntity> where TEntity : class
 {
     /// <summary>
+    /// Bu entity turune ait IQueryable'i dondurur; admin panelindeki liste uc noktalarinda
+    /// dinamik filtreleme (Where), siralama (OrderBy) ve sayfalama (Skip/Take) database
+    /// tarafinda uygulanabilsin diye kullanilir. Tum veriyi memory'e cekmez.
+    /// </summary>
+    /// <param name="asNoTracking">
+    /// true ise (varsayilan) sorgu AsNoTracking() ile calisir; sadece okuma amacli liste/detay
+    /// sorgularinda kullanilmalidir. Guncellenecek bir kayit getirilecekse false verilmelidir.
+    /// </param>
+    IQueryable<TEntity> GetQueryable(bool asNoTracking = true);
+
+    /// <summary>
     /// Verilen birincil anahtar (id) degerine sahip kaydi asenkron olarak getirir.
     /// </summary>
     /// <param name="id">Aranan kaydin birincil anahtar degeri.</param>

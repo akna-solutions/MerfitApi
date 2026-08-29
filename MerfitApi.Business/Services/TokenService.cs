@@ -31,6 +31,10 @@ public class TokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            // Admin API'nin [Authorize(Policy = "AdminOnly")] kontrolunun dayandigi rol bilgisi.
+            // ClaimTypes.Role kullanilir; boylece ASP.NET Core'un yerlesik User.IsInRole(...) ve
+            // RequireRole(...) mekanizmalari ek bir yapilandirma gerekmeden calisir.
+            new Claim(ClaimTypes.Role, user.Role.ToString()),
         };
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
