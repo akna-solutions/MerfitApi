@@ -19,7 +19,7 @@ public class LeaderboardEntryConfiguration : IEntityTypeConfiguration<Leaderboar
     public void Configure(EntityTypeBuilder<LeaderboardEntry> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("LeaderboardEntries");
+        builder.ToTable("LeaderboardEntries", "gamification");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

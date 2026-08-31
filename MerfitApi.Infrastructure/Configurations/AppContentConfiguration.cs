@@ -19,7 +19,7 @@ public class AppContentConfiguration : IEntityTypeConfiguration<AppContent>
     public void Configure(EntityTypeBuilder<AppContent> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("AppContents");
+        builder.ToTable("AppContents", "content");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

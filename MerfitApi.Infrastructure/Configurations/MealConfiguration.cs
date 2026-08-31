@@ -20,7 +20,7 @@ public class MealConfiguration : IEntityTypeConfiguration<Meal>
     public void Configure(EntityTypeBuilder<Meal> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("Meals");
+        builder.ToTable("Meals", "nutrition");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

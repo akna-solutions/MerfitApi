@@ -19,7 +19,7 @@ public class MuscleGroupConfiguration : IEntityTypeConfiguration<MuscleGroup>
     public void Configure(EntityTypeBuilder<MuscleGroup> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("MuscleGroups");
+        builder.ToTable("MuscleGroups", "workout");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

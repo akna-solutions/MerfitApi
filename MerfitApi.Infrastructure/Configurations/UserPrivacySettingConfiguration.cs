@@ -19,7 +19,7 @@ public class UserPrivacySettingConfiguration : IEntityTypeConfiguration<UserPriv
     public void Configure(EntityTypeBuilder<UserPrivacySetting> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("UserPrivacySettings");
+        builder.ToTable("UserPrivacySettings", "profile");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

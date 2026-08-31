@@ -19,7 +19,7 @@ public class MerfitScoreBreakdownConfiguration : IEntityTypeConfiguration<Merfit
     public void Configure(EntityTypeBuilder<MerfitScoreBreakdown> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("MerfitScoreBreakdowns");
+        builder.ToTable("MerfitScoreBreakdowns", "gamification");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

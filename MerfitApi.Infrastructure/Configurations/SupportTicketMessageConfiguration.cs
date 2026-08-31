@@ -15,7 +15,7 @@ public class SupportTicketMessageConfiguration : IEntityTypeConfiguration<Suppor
     public void Configure(EntityTypeBuilder<SupportTicketMessage> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("SupportTicketMessages");
+        builder.ToTable("SupportTicketMessages", "support");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

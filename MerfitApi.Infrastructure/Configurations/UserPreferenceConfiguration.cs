@@ -20,7 +20,7 @@ public class UserPreferenceConfiguration : IEntityTypeConfiguration<UserPreferen
     public void Configure(EntityTypeBuilder<UserPreference> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("UserPreferences");
+        builder.ToTable("UserPreferences", "profile");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

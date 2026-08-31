@@ -19,7 +19,7 @@ public class PersonalRecordConfiguration : IEntityTypeConfiguration<PersonalReco
     public void Configure(EntityTypeBuilder<PersonalRecord> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("PersonalRecords");
+        builder.ToTable("PersonalRecords", "workout");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);
