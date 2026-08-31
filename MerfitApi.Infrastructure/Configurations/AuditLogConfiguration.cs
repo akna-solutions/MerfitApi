@@ -47,7 +47,7 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         // Isleme dair ek verilerin JSON formatinda tutuldugu alan.
         builder.Property(x => x.MetadataJson)
             .IsRequired(false)
-            .HasMaxLength(2000);
+            .HasColumnType("jsonb");
 
         // Iliskiler (foreign key) yapilandirmasi.
         // Islemi gerceklestiren kullanicinin kimligi.

@@ -168,25 +168,17 @@ public class AuditLogService : IAuditLogService
         string? oldValueJson = null;
         string? newValueJson = null;
 
-        if (!string.IsNullOrWhiteSpace(log.MetadataJson))
+        if (log.MetadataJson is not null)
         {
-            try
+            var root = log.MetadataJson.RootElement;
+            if (root.TryGetProperty("oldValue", out var oldValueElement))
             {
-                using var doc = JsonDocument.Parse(log.MetadataJson);
-                if (doc.RootElement.TryGetProperty("oldValue", out var oldValueElement))
-                {
-                    oldValueJson = oldValueElement.ValueKind == JsonValueKind.Null ? null : oldValueElement.GetRawText();
-                }
-
-                if (doc.RootElement.TryGetProperty("newValue", out var newValueElement))
-                {
-                    newValueJson = newValueElement.ValueKind == JsonValueKind.Null ? null : newValueElement.GetRawText();
-                }
+                oldValueJson = oldValueElement.ValueKind == JsonValueKind.Null ? null : oldValueElement.GetRawText();
             }
-            catch (JsonException)
+
+            if (root.TryGetProperty("newValue", out var newValueElement))
             {
-                // Eski/format disi bir MetadataJson varsa oldugu gibi newValueJson alaninda gosterilir.
-                newValueJson = log.MetadataJson;
+                newValueJson = newValueElement.ValueKind == JsonValueKind.Null ? null : newValueElement.GetRawText();
             }
         }
 
