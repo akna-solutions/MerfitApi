@@ -61,6 +61,7 @@ public class AuthService : IAuthService
             EmailConfirmed = false,
             PhoneNumberConfirmed = false,
             LockoutEnabled = true,
+            Role = UserRole.User,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
         };
