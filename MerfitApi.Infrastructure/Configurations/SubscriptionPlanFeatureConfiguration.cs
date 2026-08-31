@@ -19,7 +19,7 @@ public class SubscriptionPlanFeatureConfiguration : IEntityTypeConfiguration<Sub
     public void Configure(EntityTypeBuilder<SubscriptionPlanFeature> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("SubscriptionPlanFeatures", "subscription");
+        builder.ToTable("SubscriptionPlanFeature", "subscription");
 
         // Birlesik (composite) birincil anahtari tanimlar.
         builder.HasKey(x => new { x.SubscriptionProductId, x.FeatureId });

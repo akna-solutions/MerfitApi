@@ -19,7 +19,7 @@ public class TranslationConfiguration : IEntityTypeConfiguration<Translation>
     public void Configure(EntityTypeBuilder<Translation> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("Translations", "content");
+        builder.ToTable("Translation", "content");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

@@ -20,7 +20,7 @@ public class GoalHistoryConfiguration : IEntityTypeConfiguration<GoalHistory>
     public void Configure(EntityTypeBuilder<GoalHistory> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("GoalHistories", "profile");
+        builder.ToTable("GoalHistory", "profile");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

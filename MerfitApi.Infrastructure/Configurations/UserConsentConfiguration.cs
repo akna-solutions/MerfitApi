@@ -19,7 +19,7 @@ public class UserConsentConfiguration : IEntityTypeConfiguration<UserConsent>
     public void Configure(EntityTypeBuilder<UserConsent> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("UserConsents", "profile");
+        builder.ToTable("UserConsent", "profile");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

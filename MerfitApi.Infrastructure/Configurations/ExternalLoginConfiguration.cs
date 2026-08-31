@@ -19,7 +19,7 @@ public class ExternalLoginConfiguration : IEntityTypeConfiguration<ExternalLogin
     public void Configure(EntityTypeBuilder<ExternalLogin> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("ExternalLogins", "authentication");
+        builder.ToTable("ExternalLogin", "authentication");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

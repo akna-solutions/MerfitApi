@@ -19,7 +19,7 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
     public void Configure(EntityTypeBuilder<AuditLog> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("AuditLogs", "audit");
+        builder.ToTable("AuditLog", "audit");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);
