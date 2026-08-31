@@ -19,7 +19,7 @@ public class NutritionGoalConfiguration : IEntityTypeConfiguration<NutritionGoal
     public void Configure(EntityTypeBuilder<NutritionGoal> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("NutritionGoals", "nutrition");
+        builder.ToTable("NutritionGoal", "nutrition");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

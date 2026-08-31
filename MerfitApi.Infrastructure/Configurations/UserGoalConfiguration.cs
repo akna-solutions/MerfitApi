@@ -20,7 +20,7 @@ public class UserGoalConfiguration : IEntityTypeConfiguration<UserGoal>
     public void Configure(EntityTypeBuilder<UserGoal> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("UserGoals", "profile");
+        builder.ToTable("UserGoal", "profile");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

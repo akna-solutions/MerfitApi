@@ -20,7 +20,7 @@ public class WorkoutPlanConfiguration : IEntityTypeConfiguration<WorkoutPlan>
     public void Configure(EntityTypeBuilder<WorkoutPlan> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("WorkoutPlans", "workout");
+        builder.ToTable("WorkoutPlan", "workout");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

@@ -20,7 +20,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
     public void Configure(EntityTypeBuilder<Notification> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("Notifications", "notification");
+        builder.ToTable("Notification", "notification");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

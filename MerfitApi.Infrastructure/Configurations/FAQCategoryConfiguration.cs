@@ -19,7 +19,7 @@ public class FAQCategoryConfiguration : IEntityTypeConfiguration<FAQCategory>
     public void Configure(EntityTypeBuilder<FAQCategory> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("FAQCategories", "support");
+        builder.ToTable("FAQCategory", "support");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

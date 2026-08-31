@@ -15,7 +15,7 @@ public class AchievementConfiguration : IEntityTypeConfiguration<Achievement>
     public void Configure(EntityTypeBuilder<Achievement> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("Achievements", "gamification");
+        builder.ToTable("Achievement", "gamification");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

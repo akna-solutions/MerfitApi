@@ -15,7 +15,7 @@ public class UserEquipmentConfiguration : IEntityTypeConfiguration<UserEquipment
     public void Configure(EntityTypeBuilder<UserEquipment> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("UserEquipments", "workout");
+        builder.ToTable("UserEquipment", "workout");
 
         // Birincil anahtari tanimlar (BaseEntity.Id).
         builder.HasKey(x => x.Id);

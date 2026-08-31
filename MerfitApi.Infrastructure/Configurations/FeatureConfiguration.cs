@@ -19,7 +19,7 @@ public class FeatureConfiguration : IEntityTypeConfiguration<Feature>
     public void Configure(EntityTypeBuilder<Feature> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("Features", "subscription");
+        builder.ToTable("Feature", "subscription");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

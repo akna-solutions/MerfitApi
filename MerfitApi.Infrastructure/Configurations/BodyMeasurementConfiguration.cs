@@ -19,7 +19,7 @@ public class BodyMeasurementConfiguration : IEntityTypeConfiguration<BodyMeasure
     public void Configure(EntityTypeBuilder<BodyMeasurement> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("BodyMeasurements", "profile");
+        builder.ToTable("BodyMeasurement", "profile");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

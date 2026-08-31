@@ -19,7 +19,7 @@ public class RewardConfiguration : IEntityTypeConfiguration<Reward>
     public void Configure(EntityTypeBuilder<Reward> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("Rewards", "gamification");
+        builder.ToTable("Reward", "gamification");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);
