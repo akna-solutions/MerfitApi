@@ -20,7 +20,7 @@ public class SubscriptionTransactionConfiguration : IEntityTypeConfiguration<Sub
     public void Configure(EntityTypeBuilder<SubscriptionTransaction> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("SubscriptionTransactions");
+        builder.ToTable("SubscriptionTransactions", "subscription");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

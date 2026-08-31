@@ -19,7 +19,7 @@ public class AiGenerationResultConfiguration : IEntityTypeConfiguration<AiGenera
     public void Configure(EntityTypeBuilder<AiGenerationResult> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("AiGenerationResults");
+        builder.ToTable("AiGenerationResults", "ai");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

@@ -19,7 +19,7 @@ public class WorkoutEquipmentConfiguration : IEntityTypeConfiguration<WorkoutEqu
     public void Configure(EntityTypeBuilder<WorkoutEquipment> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("WorkoutEquipments");
+        builder.ToTable("WorkoutEquipments", "workout");
 
         // Birlesik (composite) birincil anahtari tanimlar.
         builder.HasKey(x => new { x.WorkoutId, x.EquipmentId });

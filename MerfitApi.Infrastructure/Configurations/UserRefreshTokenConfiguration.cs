@@ -19,7 +19,7 @@ public class UserRefreshTokenConfiguration : IEntityTypeConfiguration<UserRefres
     public void Configure(EntityTypeBuilder<UserRefreshToken> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("UserRefreshTokens");
+        builder.ToTable("UserRefreshTokens", "authentication");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

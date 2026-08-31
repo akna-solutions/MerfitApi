@@ -20,7 +20,7 @@ public class LeaderboardPeriodConfiguration : IEntityTypeConfiguration<Leaderboa
     public void Configure(EntityTypeBuilder<LeaderboardPeriod> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("LeaderboardPeriods");
+        builder.ToTable("LeaderboardPeriods", "gamification");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

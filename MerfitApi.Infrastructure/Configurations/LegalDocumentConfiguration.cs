@@ -20,7 +20,7 @@ public class LegalDocumentConfiguration : IEntityTypeConfiguration<LegalDocument
     public void Configure(EntityTypeBuilder<LegalDocument> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("LegalDocuments");
+        builder.ToTable("LegalDocuments", "content");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

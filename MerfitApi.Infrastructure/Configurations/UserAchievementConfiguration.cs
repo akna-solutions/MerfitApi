@@ -19,7 +19,7 @@ public class UserAchievementConfiguration : IEntityTypeConfiguration<UserAchieve
     public void Configure(EntityTypeBuilder<UserAchievement> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("UserAchievements");
+        builder.ToTable("UserAchievements", "gamification");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

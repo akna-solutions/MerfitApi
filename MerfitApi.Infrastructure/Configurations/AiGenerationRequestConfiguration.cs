@@ -20,7 +20,7 @@ public class AiGenerationRequestConfiguration : IEntityTypeConfiguration<AiGener
     public void Configure(EntityTypeBuilder<AiGenerationRequest> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("AiGenerationRequests");
+        builder.ToTable("AiGenerationRequests", "ai");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

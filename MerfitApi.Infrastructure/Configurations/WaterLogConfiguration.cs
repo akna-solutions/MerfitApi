@@ -19,7 +19,7 @@ public class WaterLogConfiguration : IEntityTypeConfiguration<WaterLog>
     public void Configure(EntityTypeBuilder<WaterLog> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("WaterLogs");
+        builder.ToTable("WaterLogs", "nutrition");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

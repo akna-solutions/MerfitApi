@@ -19,7 +19,7 @@ public class EquipmentConfiguration : IEntityTypeConfiguration<Equipment>
     public void Configure(EntityTypeBuilder<Equipment> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("Equipments");
+        builder.ToTable("Equipments", "workout");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);
