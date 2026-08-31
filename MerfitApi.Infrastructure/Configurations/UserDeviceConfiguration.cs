@@ -20,7 +20,7 @@ public class UserDeviceConfiguration : IEntityTypeConfiguration<UserDevice>
     public void Configure(EntityTypeBuilder<UserDevice> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("UserDevice", "notification");
+        builder.ToTable("UserDevice", "authentication");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);
