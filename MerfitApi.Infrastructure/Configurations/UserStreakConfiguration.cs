@@ -19,7 +19,7 @@ public class UserStreakConfiguration : IEntityTypeConfiguration<UserStreak>
     public void Configure(EntityTypeBuilder<UserStreak> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("UserStreak", "gamification");
+        builder.ToTable("UserStreak", "profile");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);
