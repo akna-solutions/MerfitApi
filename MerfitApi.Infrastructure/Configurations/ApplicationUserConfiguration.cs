@@ -19,7 +19,7 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("Users");
+        builder.ToTable("ApplicationUser", "authentication");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);
@@ -60,11 +60,5 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
             .HasMaxLength(50)
             .HasConversion<string>()
             .HasDefaultValue(MerfitApi.Domain.Entities.Enums.UserRole.User);
-
-        // Admin panelinde role gore filtreleme/istatistik sorgulari icin indeks.
-        builder.HasIndex(x => x.Role);
-
-        // Soft-delete + aktiflik durumuna gore filtrelenen admin kullanici listeleri icin indeks.
-        builder.HasIndex(x => new { x.IsActive, x.DeletedAt });
     }
 }
