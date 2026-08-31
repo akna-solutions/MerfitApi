@@ -63,7 +63,9 @@ public class AuditLogService : IAuditLogService
                 EntityId = entityId,
                 IpAddress = ipAddress,
                 UserAgent = userAgent,
-                MetadataJson = metadata is null ? null : JsonSerializer.Serialize(metadata, SerializerOptions),
+                MetadataJson = metadata is null
+    ? null
+    : JsonDocument.Parse(JsonSerializer.Serialize(metadata, SerializerOptions)),
                 CreatedAt = DateTime.UtcNow,
             };
 

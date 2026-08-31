@@ -19,7 +19,7 @@ public class LanguageConfiguration : IEntityTypeConfiguration<Language>
     public void Configure(EntityTypeBuilder<Language> builder)
     {
         // Tablo adini belirtir.
-        builder.ToTable("Language", "public");
+        builder.ToTable("Language", "content");
 
         // Birincil anahtari tanimlar.
         builder.HasKey(x => x.Id);

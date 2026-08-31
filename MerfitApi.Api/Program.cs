@@ -131,6 +131,20 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole(UserRole.Admin.ToString(), UserRole.SuperAdmin.ToString()));
 });
 
+// CORS - merfit-admin-app (CRA dev server, localhost:3000) buradan istek atabilsin diye.
+// Bearer token header ile calistigimiz (cookie tabanli auth kullanmadigimiz) icin
+// AllowCredentials'a ihtiyac yok; origin'i yine de sabit tutuyoruz.
+const string AdminAppCorsPolicy = "AdminAppCorsPolicy";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(AdminAppCorsPolicy, policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Pipeline'daki tum istisnalari yakalayip tutarli bir ApiResponse govdesine ceviren middleware;
@@ -149,6 +163,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(AdminAppCorsPolicy);
 
 app.UseAuthentication();
 app.UseAuthorization();

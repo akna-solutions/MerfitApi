@@ -3,6 +3,7 @@
 // </auto-generated>
 
 using MerfitApi.Domain.Common;
+using System.Text.Json;
 
 namespace MerfitApi.Domain.Entities;
 
@@ -44,5 +45,5 @@ public class AuditLog : BaseEntity
     /// <summary>
     /// Isleme dair ek verilerin JSON formatinda tutuldugu alan.
     /// </summary>
-    public string? MetadataJson { get; set; }
+    public JsonDocument? MetadataJson { get; set; }
 }
