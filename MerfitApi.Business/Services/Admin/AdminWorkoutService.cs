@@ -3,6 +3,7 @@ using MerfitApi.Business.Common.Pagination;
 using MerfitApi.Business.Dtos.Admin.Workouts;
 using MerfitApi.Business.Interfaces.Services.Admin;
 using MerfitApi.Domain.Entities;
+using MerfitApi.Domain.Entities.Enums;
 using MerfitApi.Domain.Exceptions;
 using MerfitApi.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -195,6 +196,9 @@ public class AdminWorkoutService : IAdminWorkoutService
 
         var equipmentLinks = await _unitOfWork.Repository<WorkoutEquipment>().FindAsync(x => x.WorkoutId == id, cancellationToken);
         _unitOfWork.Repository<WorkoutEquipment>().RemoveRange(equipmentLinks);
+
+        var attributeScores = await _unitOfWork.Repository<WorkoutAttributeScore>().FindAsync(x => x.WorkoutId == id, cancellationToken);
+        _unitOfWork.Repository<WorkoutAttributeScore>().RemoveRange(attributeScores);
 
         repo.Remove(entity);
 
@@ -389,6 +393,112 @@ public class AdminWorkoutService : IAdminWorkoutService
             oldValue: existing.Select(x => x.EquipmentId), newValue: equipmentIds, cancellationToken: cancellationToken);
 
         return await GetEquipmentAsync(workoutId, cancellationToken);
+    }
+
+    public async Task<AdminWorkoutAttributeScoresDto> GetAttributeScoresAsync(long workoutId, CancellationToken cancellationToken = default)
+    {
+        await GetOrThrowAsync(workoutId, cancellationToken);
+
+        var scores = await _unitOfWork.Repository<WorkoutAttributeScore>().GetQueryable()
+            .Where(x => x.WorkoutId == workoutId)
+            .ToListAsync(cancellationToken);
+
+        var scoredTypes = scores.Select(x => x.AttributeType).ToHashSet();
+        return new AdminWorkoutAttributeScoresDto
+        {
+            WorkoutId = workoutId,
+            Scores = scores
+                .OrderBy(x => x.AttributeType)
+                .Select(x => new AdminWorkoutAttributeScoreItemDto
+                {
+                    AttributeType = x.AttributeType.ToString(),
+                    Score = x.Score,
+                    UpdatedAt = x.UpdatedAt ?? x.CreatedAt,
+                })
+                .ToList(),
+            MissingAttributeTypes = Enum.GetValues<WorkoutAttributeType>()
+                .Where(t => !scoredTypes.Contains(t))
+                .Select(t => t.ToString())
+                .ToList(),
+        };
+    }
+
+    public async Task<AdminWorkoutAttributeScoresDto> SetAttributeScoresAsync(long workoutId, AdminSetWorkoutAttributeScoresRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default)
+    {
+        await GetOrThrowAsync(workoutId, cancellationToken);
+
+        // DTO attribute'larindan bagimsiz olarak tur/puan kurallari burada da dogrulanir; ayni tur tekrar edemez.
+        var requested = new Dictionary<WorkoutAttributeType, int>();
+        foreach (var item in request.Scores ?? new List<AdminWorkoutAttributeScoreInput>())
+        {
+            if (item.AttributeType is null || !Enum.IsDefined(item.AttributeType.Value))
+            {
+                throw new AppValidationException(nameof(AdminWorkoutAttributeScoreInput.AttributeType), "Gecersiz ozellik turu.");
+            }
+
+            if (item.Score < WorkoutAttributeScore.MinScore || item.Score > WorkoutAttributeScore.MaxScore)
+            {
+                throw new AppValidationException(nameof(AdminWorkoutAttributeScoreInput.Score),
+                    $"Puan {WorkoutAttributeScore.MinScore}-{WorkoutAttributeScore.MaxScore} araliginda olmalidir.");
+            }
+
+            if (!requested.TryAdd(item.AttributeType.Value, item.Score))
+            {
+                throw new AppValidationException(nameof(AdminWorkoutAttributeScoreInput.AttributeType),
+                    $"{item.AttributeType.Value} ozelligi birden fazla kez gonderilemez.");
+            }
+        }
+
+        var repo = _unitOfWork.Repository<WorkoutAttributeScore>();
+        var existing = await repo.GetQueryable(asNoTracking: false)
+            .Where(x => x.WorkoutId == workoutId)
+            .ToListAsync(cancellationToken);
+        var oldValue = existing.ToDictionary(x => x.AttributeType.ToString(), x => x.Score);
+
+        var now = DateTime.UtcNow;
+        foreach (var (attributeType, score) in requested)
+        {
+            var current = existing.FirstOrDefault(x => x.AttributeType == attributeType);
+            if (current is null)
+            {
+                await repo.AddAsync(new WorkoutAttributeScore
+                {
+                    WorkoutId = workoutId,
+                    AttributeType = attributeType,
+                    Score = score,
+                    CreatedAt = now,
+                    CreatedUser = adminUserId,
+                }, cancellationToken);
+            }
+            else if (current.Score != score)
+            {
+                current.Score = score;
+                current.UpdatedAt = now;
+                current.UpdatedUser = adminUserId;
+                repo.Update(current);
+            }
+        }
+
+        var removed = existing.Where(x => !requested.ContainsKey(x.AttributeType)).ToList();
+        if (removed.Count > 0)
+        {
+            repo.RemoveRange(removed);
+        }
+
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Ayni antrenman+tur icin es zamanli bir kayit, (WorkoutId, AttributeType) unique index'ine takildi.
+            throw new ConflictException("Antrenman puanlari ayni anda baska bir islemle guncellendi. Lutfen tekrar deneyin.");
+        }
+
+        await _auditLogService.LogAsync(adminUserId, "WORKOUT_ATTRIBUTE_SCORES_SET", nameof(Workout), workoutId, ipAddress, userAgent,
+            oldValue: oldValue, newValue: requested.ToDictionary(x => x.Key.ToString(), x => x.Value), cancellationToken: cancellationToken);
+
+        return await GetAttributeScoresAsync(workoutId, cancellationToken);
     }
 
     private async Task ValidateAsync(AdminUpsertWorkoutRequest request, long? existingId, CancellationToken cancellationToken)

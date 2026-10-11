@@ -33,4 +33,10 @@ public interface IAdminWorkoutService
     Task<List<AdminWorkoutEquipmentItemDto>> GetEquipmentAsync(long workoutId, CancellationToken cancellationToken = default);
 
     Task<List<AdminWorkoutEquipmentItemDto>> SetEquipmentAsync(long workoutId, AdminSetWorkoutEquipmentRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
+
+    /// <summary>Antrenmanin ozellik puanlarini ve henuz puanlanmamis ozellik turlerini dondurur.</summary>
+    Task<AdminWorkoutAttributeScoresDto> GetAttributeScoresAsync(long workoutId, CancellationToken cancellationToken = default);
+
+    /// <summary>Antrenmanin ozellik puanlarini tamamen degistirir (replace-all).</summary>
+    Task<AdminWorkoutAttributeScoresDto> SetAttributeScoresAsync(long workoutId, AdminSetWorkoutAttributeScoresRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
 }

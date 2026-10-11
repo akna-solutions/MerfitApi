@@ -91,4 +91,19 @@ public class AdminWorkoutController : AdminControllerBase
     public async Task<ActionResult<ApiResponse<List<AdminWorkoutEquipmentItemDto>>>> SetEquipment(
         long id, [FromBody] AdminSetWorkoutEquipmentRequest request, CancellationToken cancellationToken)
         => SuccessResponse(await _service.SetEquipmentAsync(id, request, CurrentAdminId, ClientIp, UserAgent, cancellationToken));
+
+    /// <summary>
+    /// Antrenmanin ozellik puanlarini (Hypertrophy, Strength, Cardio, Endurance, Mobility, CoreStability)
+    /// ve henuz puanlanmamis ozellik turlerini doner. Puanlar kisisellestirilmis program uretiminde
+    /// (MerfitCustomerApi) hedef uyumunu belirler.
+    /// </summary>
+    [HttpGet("{id:long}/attribute-scores")]
+    public async Task<ActionResult<ApiResponse<AdminWorkoutAttributeScoresDto>>> GetAttributeScores(long id, CancellationToken cancellationToken)
+        => SuccessResponse(await _service.GetAttributeScoresAsync(id, cancellationToken));
+
+    /// <summary>Antrenmanin ozellik puanlarini tamamen degistirir (replace-all; listede olmayanlar silinir).</summary>
+    [HttpPut("{id:long}/attribute-scores")]
+    public async Task<ActionResult<ApiResponse<AdminWorkoutAttributeScoresDto>>> SetAttributeScores(
+        long id, [FromBody] AdminSetWorkoutAttributeScoresRequest request, CancellationToken cancellationToken)
+        => SuccessResponse(await _service.SetAttributeScoresAsync(id, request, CurrentAdminId, ClientIp, UserAgent, cancellationToken));
 }
