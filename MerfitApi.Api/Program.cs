@@ -1,9 +1,12 @@
+using MerfitApi.Api.BackgroundJobs;
 using MerfitApi.Business.Common;
+using MerfitApi.Business.Common.Notifications;
 using MerfitApi.Business.Interfaces;
 using MerfitApi.Business.Interfaces.Services;
 using MerfitApi.Business.Interfaces.Services.Admin;
 using MerfitApi.Business.Services.Auth;
 using MerfitApi.Business.Services.Admin;
+using MerfitApi.Business.Services.Admin.Notifications;
 using MerfitApi.Business.Services.TokenService;
 using MerfitApi.Domain.Entities.Enums;
 using MerfitApi.Domain.Interfaces;
@@ -87,6 +90,18 @@ builder.Services.AddScoped<IAdminSubscriptionProductService, AdminSubscriptionPr
 builder.Services.AddScoped<IAdminSubscriptionService, AdminSubscriptionService>();
 builder.Services.AddScoped<IAdminSubscriptionTransactionService, AdminSubscriptionTransactionService>();
 builder.Services.AddScoped<IAdminNotificationService, AdminNotificationService>();
+// Bildirim motoru (admin tarafi): kural/sablon/kampanya yonetimi ve kampanya + aylik odul islerinin
+// ortak NotificationDispatch kuyruguna yazilmasi. Push gonderimini MerfitCustomerApi yapar.
+builder.Services.Configure<NotificationAdminOptions>(builder.Configuration.GetSection(NotificationAdminOptions.SectionName));
+builder.Services.AddScoped<INotificationAudienceResolver, NotificationAudienceResolver>();
+builder.Services.AddScoped<IAdminNotificationTemplateService, AdminNotificationTemplateService>();
+builder.Services.AddScoped<IAdminNotificationRuleService, AdminNotificationRuleService>();
+builder.Services.AddScoped<IAdminNotificationDispatchService, AdminNotificationDispatchService>();
+builder.Services.AddScoped<IAdminNotificationCampaignService, AdminNotificationCampaignService>();
+builder.Services.AddScoped<IAdminMonthlyRewardNotificationService, AdminMonthlyRewardNotificationService>();
+builder.Services.AddScoped<INotificationJobStore, NotificationJobStore>();
+builder.Services.AddScoped<INotificationJobProcessor, NotificationJobProcessor>();
+builder.Services.AddHostedService<NotificationJobWorker>();
 builder.Services.AddScoped<IAdminAchievementService, AdminAchievementService>();
 // MB FIT puan kurallari (MerfitCustomerApi ile ayni "MerfitScoring" ayarlari).
 builder.Services.Configure<MerfitScoringOptions>(builder.Configuration.GetSection(MerfitScoringOptions.SectionName));

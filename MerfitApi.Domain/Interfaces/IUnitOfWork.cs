@@ -24,6 +24,12 @@ public interface IUnitOfWork : IDisposable
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Izlenen tum entity'leri birakir. Uzun suren toplu islemlerde (orn. binlerce bildirim kaydi
+    /// yazan isler) bellek kullanimini sinirlamak icin her partiden sonra cagrilir.
+    /// </summary>
+    void ClearTracking();
+
+    /// <summary>
     /// Veritabani islemini (transaction) asenkron olarak baslatir.
     /// </summary>
     /// <param name="cancellationToken">Islemi iptal etmek icin kullanilan token.</param>
