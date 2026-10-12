@@ -33,6 +33,11 @@ public class AdminNotificationService : IAdminNotificationService
         if (request.UserId.HasValue) query = query.Where(x => x.UserId == request.UserId.Value);
         if (request.IsRead.HasValue) query = query.Where(x => x.IsRead == request.IsRead.Value);
         if (request.Type.HasValue) query = query.Where(x => x.Type == request.Type.Value);
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var search = request.Search.Trim().ToLower();
+            query = query.Where(x => x.Title.ToLower().Contains(search) || users.Any(u => u.Id == x.UserId && u.Email.ToLower().Contains(search)));
+        }
         if (request.From.HasValue) query = query.Where(x => x.CreatedAt >= request.From.Value);
         if (request.To.HasValue) query = query.Where(x => x.CreatedAt <= request.To.Value);
 
