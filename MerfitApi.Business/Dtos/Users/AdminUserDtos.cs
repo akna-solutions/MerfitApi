@@ -91,6 +91,8 @@ public class AdminUserProfileDto
     public ActivityLevel? ActivityLevel { get; set; }
     public TrainingLocation? TrainingLocation { get; set; }
     public int? TrainingDaysPerWeek { get; set; }
+    /// <summary>Kullanicinin sectigi antrenman gunleri ("Mon,Wed,Fri"); secim yoksa null.</summary>
+    public string? PreferredTrainingDays { get; set; }
     public UnitSystem UnitSystem { get; set; }
 }
 

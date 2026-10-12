@@ -49,6 +49,11 @@ public class AppDbContext : DbContext
     public DbSet<UserNotificationSetting> UserNotificationSettings => Set<UserNotificationSetting>();
 
     /// <summary>
+    /// UserNotificationTypeSetting kayitlarina erisim saglayan DbSet.
+    /// </summary>
+    public DbSet<UserNotificationTypeSetting> UserNotificationTypeSettings => Set<UserNotificationTypeSetting>();
+
+    /// <summary>
     /// UserPrivacySetting kayitlarina erisim saglayan DbSet.
     /// </summary>
     public DbSet<UserPrivacySetting> UserPrivacySettings => Set<UserPrivacySetting>();
@@ -119,6 +124,11 @@ public class AppDbContext : DbContext
     public DbSet<WorkoutPlanDay> WorkoutPlanDays => Set<WorkoutPlanDay>();
 
     /// <summary>
+    /// WorkoutPlanExercise kayitlarina erisim saglayan DbSet.
+    /// </summary>
+    public DbSet<WorkoutPlanExercise> WorkoutPlanExercises => Set<WorkoutPlanExercise>();
+
+    /// <summary>
     /// WorkoutSession kayitlarina erisim saglayan DbSet.
     /// </summary>
     public DbSet<WorkoutSession> WorkoutSessions => Set<WorkoutSession>();
@@ -157,6 +167,31 @@ public class AppDbContext : DbContext
     /// NutritionGoal kayitlarina erisim saglayan DbSet.
     /// </summary>
     public DbSet<NutritionGoal> NutritionGoals => Set<NutritionGoal>();
+
+    /// <summary>
+    /// NutritionPlan kayitlarina erisim saglayan DbSet.
+    /// </summary>
+    public DbSet<NutritionPlan> NutritionPlans => Set<NutritionPlan>();
+
+    /// <summary>
+    /// NutritionPlanDay kayitlarina erisim saglayan DbSet.
+    /// </summary>
+    public DbSet<NutritionPlanDay> NutritionPlanDays => Set<NutritionPlanDay>();
+
+    /// <summary>
+    /// NutritionPlanMeal kayitlarina erisim saglayan DbSet.
+    /// </summary>
+    public DbSet<NutritionPlanMeal> NutritionPlanMeals => Set<NutritionPlanMeal>();
+
+    /// <summary>
+    /// NutritionPlanMealItem kayitlarina erisim saglayan DbSet.
+    /// </summary>
+    public DbSet<NutritionPlanMealItem> NutritionPlanMealItems => Set<NutritionPlanMealItem>();
+
+    /// <summary>
+    /// PersonalizationJob kayitlarina erisim saglayan DbSet.
+    /// </summary>
+    public DbSet<PersonalizationJob> PersonalizationJobs => Set<PersonalizationJob>();
 
     /// <summary>
     /// WaterLog kayitlarina erisim saglayan DbSet.
@@ -330,5 +365,16 @@ public class AppDbContext : DbContext
         // Bu assembly icindeki (MerfitApi.Infrastructure.Configurations) tum
         // IEntityTypeConfiguration<T> siniflarini otomatik olarak model'e uygular.
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        // MerfitCustomerApi'deki AppDbContext ile ayni: PersonalizationJob satirlari PostgreSQL'in
+        // "xmin" sistem kolonuyla optimistic concurrency korumasindadir. Sema MerfitCustomerApi
+        // migration'larinca yonetilir; bu tanim yalnizca model esitligi icindir.
+        if (Database.IsNpgsql())
+        {
+            modelBuilder.Entity<PersonalizationJob>()
+                .Property<uint>("xmin")
+                .HasColumnType("xid")
+                .IsRowVersion();
+        }
     }
 }

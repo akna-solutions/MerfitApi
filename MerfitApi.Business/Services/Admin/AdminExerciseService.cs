@@ -170,10 +170,12 @@ public class AdminExerciseService : IAdminExerciseService
         var isUsedByWorkout = await _unitOfWork.Repository<WorkoutExercise>().AnyAsync(x => x.ExerciseId == id, cancellationToken);
         var hasSessionHistory = await _unitOfWork.Repository<WorkoutSessionExercise>().AnyAsync(x => x.ExerciseId == id, cancellationToken);
         var hasPersonalRecords = await _unitOfWork.Repository<PersonalRecord>().AnyAsync(x => x.ExerciseId == id, cancellationToken);
+        // Kullanicilara uretilen antrenman programlari (WorkoutPlanExercise) egzersize Restrict FK ile baglidir.
+        var isUsedInPlans = await _unitOfWork.Repository<WorkoutPlanExercise>().AnyAsync(x => x.ExerciseId == id, cancellationToken);
 
-        if (isUsedByWorkout || hasSessionHistory || hasPersonalRecords)
+        if (isUsedByWorkout || hasSessionHistory || hasPersonalRecords || isUsedInPlans)
         {
-            throw new ConflictException("Bu egzersiz mevcut antrenman veya kullanici gecmisinde kullanildigi icin silinemez. Bunun yerine pasif hale getirebilirsiniz (PATCH /status).");
+            throw new ConflictException("Bu egzersiz mevcut antrenman, kullanici programi veya kullanici gecmisinde kullanildigi icin silinemez. Bunun yerine pasif hale getirebilirsiniz (PATCH /status).");
         }
 
         repo.Remove(entity);

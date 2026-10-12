@@ -615,6 +615,7 @@ public class AdminUserService : IAdminUserService
         ActivityLevel = profile.ActivityLevel,
         TrainingLocation = profile.TrainingLocation,
         TrainingDaysPerWeek = profile.TrainingDaysPerWeek,
+        PreferredTrainingDays = profile.PreferredTrainingDays,
         UnitSystem = profile.UnitSystem,
     };
 }

@@ -40,6 +40,16 @@ public class UserProfileConfiguration : IEntityTypeConfiguration<UserProfile>
             .IsRequired(true)
             .HasMaxLength(300);
 
+        // Kullanici adi benzersiz olmalidir. Uygulama katmanindaki AnyAsync kontrolleri (bkz.
+        // AuthService.RegisterAsync ve ProfileService.ApplyIdentityChangesAsync) hizli/dostane bir
+        // hata mesaji icin gereklidir ama TEK BASINA yeterli degildir; bu veritabani seviyesindeki
+        // unique index, iki isteğin es zamanli (race condition) olarak ayni kullanici adini almasini
+        // kesin olarak engeller. AuthService/ProfileService, bu index ihlal edildiginde olusan
+        // DbUpdateException'i yakalayip ayni ConflictException'a ceviriyor (bkz. o dosyalardaki
+        // try/catch bloklari).
+        builder.HasIndex(x => x.Username)
+            .IsUnique();
+
         // Kullanicinin cinsiyeti.
         builder.Property(x => x.Gender)
             .HasConversion<string>()
@@ -88,6 +98,11 @@ public class UserProfileConfiguration : IEntityTypeConfiguration<UserProfile>
             .HasMaxLength(50);
 
         // Kullanicinin tercih ettigi olcum birimi sistemi.
+        // Kullanicinin sectigi antrenman gunleri ("Mon,Wed,Fri").
+        builder.Property(x => x.PreferredTrainingDays)
+            .IsRequired(false)
+            .HasMaxLength(64);
+
         builder.Property(x => x.UnitSystem)
             .HasConversion<string>()
             .IsRequired(true)

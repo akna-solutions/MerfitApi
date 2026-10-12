@@ -146,9 +146,11 @@ public class AdminFoodService : IAdminFoodService
             ?? throw new NotFoundException(nameof(Food), id);
 
         var isUsedInMeals = await _unitOfWork.Repository<MealItem>().AnyAsync(x => x.FoodId == id, cancellationToken);
-        if (isUsedInMeals)
+        // Kullanicilara uretilen beslenme programlari (NutritionPlanMealItem) besine Restrict FK ile baglidir.
+        var isUsedInPlans = await _unitOfWork.Repository<NutritionPlanMealItem>().AnyAsync(x => x.FoodId == id, cancellationToken);
+        if (isUsedInMeals || isUsedInPlans)
         {
-            throw new ConflictException("Bu besin, kullanicilarin gecmis ogun kayitlarinda kullanildigi icin silinemez.");
+            throw new ConflictException("Bu besin, kullanicilarin ogun kayitlarinda veya beslenme programlarinda kullanildigi icin silinemez.");
         }
 
         repo.Remove(entity);
