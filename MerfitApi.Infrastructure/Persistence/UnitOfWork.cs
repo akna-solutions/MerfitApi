@@ -71,6 +71,11 @@ public class UnitOfWork : IUnitOfWork
     /// Veritabani islemini (transaction) asenkron olarak baslatir.
     /// </summary>
     /// <param name="cancellationToken">Islemi iptal etmek icin kullanilan token.</param>
+    public void ClearTracking()
+    {
+        _dbContext.ChangeTracker.Clear();
+    }
+
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         _currentTransaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);

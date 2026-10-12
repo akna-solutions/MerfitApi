@@ -23,6 +23,7 @@ public class AdminLeaderboardService : IAdminLeaderboardService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuditLogService _auditLogService;
     private readonly MerfitPointsCalculator _pointsCalculator;
+    private readonly IAdminMonthlyRewardNotificationService _rewardNotifications;
 
     private static readonly IReadOnlyDictionary<string, Expression<Func<LeaderboardPeriod, object?>>> SortMap =
         new Dictionary<string, Expression<Func<LeaderboardPeriod, object?>>>(StringComparer.OrdinalIgnoreCase)
@@ -31,11 +32,16 @@ public class AdminLeaderboardService : IAdminLeaderboardService
             ["createdAt"] = x => x.CreatedAt,
         };
 
-    public AdminLeaderboardService(IUnitOfWork unitOfWork, IAuditLogService auditLogService, MerfitPointsCalculator pointsCalculator)
+    public AdminLeaderboardService(
+        IUnitOfWork unitOfWork,
+        IAuditLogService auditLogService,
+        MerfitPointsCalculator pointsCalculator,
+        IAdminMonthlyRewardNotificationService rewardNotifications)
     {
         _unitOfWork = unitOfWork;
         _auditLogService = auditLogService;
         _pointsCalculator = pointsCalculator;
+        _rewardNotifications = rewardNotifications;
     }
 
     public async Task<PagedResult<AdminLeaderboardPeriodDto>> GetPeriodsAsync(AdminLeaderboardPeriodListRequest request, CancellationToken cancellationToken = default)
@@ -279,6 +285,10 @@ public class AdminLeaderboardService : IAdminLeaderboardService
 
         await _auditLogService.LogAsync(adminUserId, "LEADERBOARD_REWARDS_DISTRIBUTED", nameof(LeaderboardPeriod), periodId, ipAddress, userAgent,
             newValue: new { CreatedCount = toCreate.Count, SkippedCount = skipped }, cancellationToken: cancellationToken);
+
+        // Odul hesaplamasi degismez; aylik donemlerde kazananlara bildirim isi kuyruga alinir ve
+        // donem bittikten sonra (sonuclar kesinlesince) gonderilir.
+        await _rewardNotifications.EnqueueAfterDistributionAsync(await GetOrThrowAsync(periodId, cancellationToken), adminUserId, cancellationToken);
 
         return new AdminLeaderboardDistributeRewardsResultDto
         {
