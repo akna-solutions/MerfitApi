@@ -3,6 +3,7 @@ using MerfitApi.Business.Common.Pagination;
 using MerfitApi.Business.Dtos.Admin.Leaderboards;
 using MerfitApi.Business.Interfaces.Services.Admin;
 using MerfitApi.Domain.Entities;
+using MerfitApi.Domain.Entities.Enums;
 using MerfitApi.Domain.Exceptions;
 using MerfitApi.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -12,18 +13,16 @@ namespace MerfitApi.Business.Services.Admin;
 /// <summary>
 /// IAdminLeaderboardService'in varsayilan implementasyonu.
 ///
-/// PUANLAMA VARSAYIMI (madde 23): Repository icinde liderlik puanlamasinin nasil hesaplandigina
-/// dair bir algoritma tanimli degildir. Bu servis, "recalculate" islemini donem tarih araliginda
-/// (StartDate-EndDate) TAMAMLANMIS antrenman oturumu (WorkoutSession.CompletedAt) SAYISI uzerinden
-/// yapar: Points = WorkoutCount = o araliktaki tamamlanmis oturum sayisi. Siralama (Rank) puana
-/// gore azalan sirada, esitliklerde kullanici Id'sine gore tutarli bicimde atanir. Gercek is
-/// kurali (orn. MerfitScore agirlikli puanlama) eklendiginde bu metodun ic gorunumu degistirilip
-/// disaridan ayni sozlesme (recalculate) korunabilir.
+/// RECALCULATE: Donemin [StartDate, EndDate) araligindaki MB FIT puanlari MerfitPointsCalculator ile
+/// (mobil uygulamadaki siralamayla ayni kurallarla) hesaplanir ve LeaderboardEntry anlik goruntusu
+/// yeniden yazilir. Siralama puana, esitlikte antrenman sayisina, sonra kullanici Id'sine gore yapilir.
+/// Mobil uygulama siralamayi canli hesapladigi icin bu tablo admin raporlamasi ve odul dagitimi icindir.
 /// </summary>
 public class AdminLeaderboardService : IAdminLeaderboardService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuditLogService _auditLogService;
+    private readonly MerfitPointsCalculator _pointsCalculator;
 
     private static readonly IReadOnlyDictionary<string, Expression<Func<LeaderboardPeriod, object?>>> SortMap =
         new Dictionary<string, Expression<Func<LeaderboardPeriod, object?>>>(StringComparer.OrdinalIgnoreCase)
@@ -32,10 +31,11 @@ public class AdminLeaderboardService : IAdminLeaderboardService
             ["createdAt"] = x => x.CreatedAt,
         };
 
-    public AdminLeaderboardService(IUnitOfWork unitOfWork, IAuditLogService auditLogService)
+    public AdminLeaderboardService(IUnitOfWork unitOfWork, IAuditLogService auditLogService, MerfitPointsCalculator pointsCalculator)
     {
         _unitOfWork = unitOfWork;
         _auditLogService = auditLogService;
+        _pointsCalculator = pointsCalculator;
     }
 
     public async Task<PagedResult<AdminLeaderboardPeriodDto>> GetPeriodsAsync(AdminLeaderboardPeriodListRequest request, CancellationToken cancellationToken = default)
@@ -160,21 +160,34 @@ public class AdminLeaderboardService : IAdminLeaderboardService
     {
         var period = await GetOrThrowAsync(periodId, cancellationToken);
 
-        var completedCounts = await _unitOfWork.Repository<WorkoutSession>().GetQueryable()
-            .Where(s => s.CompletedAt != null && s.CompletedAt >= period.StartDate && s.CompletedAt <= period.EndDate)
+        var isAllTime = period.Type == LeaderboardPeriodType.AllTime;
+        DateTime? fromUtc = isAllTime ? null : period.StartDate;
+        DateTime? toUtc = isAllTime ? null : period.EndDate;
+
+        var events = await _pointsCalculator.GetPointEventsAsync(fromUtc, toUtc, null, cancellationToken);
+
+        var workoutQuery = _unitOfWork.Repository<WorkoutSession>().GetQueryable()
+            .Where(s => s.Status == WorkoutSessionStatus.Completed && s.CompletedAt != null);
+        if (fromUtc.HasValue) workoutQuery = workoutQuery.Where(s => s.CompletedAt >= fromUtc.Value);
+        if (toUtc.HasValue) workoutQuery = workoutQuery.Where(s => s.CompletedAt < toUtc.Value);
+        var workoutCounts = await workoutQuery
             .GroupBy(s => s.UserId)
             .Select(g => new { UserId = g.Key, Count = g.Count() })
-            .ToListAsync(cancellationToken);
+            .ToDictionaryAsync(x => x.UserId, x => x.Count, cancellationToken);
 
-        var ranked = completedCounts
-            .OrderByDescending(x => x.Count)
+        var ranked = events
+            .GroupBy(e => e.UserId)
+            .Select(g => new { UserId = g.Key, Points = g.Sum(e => e.Points), Workouts = workoutCounts.GetValueOrDefault(g.Key, 0) })
+            .Where(x => x.Points > 0)
+            .OrderByDescending(x => x.Points)
+            .ThenByDescending(x => x.Workouts)
             .ThenBy(x => x.UserId)
             .Select((x, index) => new LeaderboardEntry
             {
                 LeaderboardPeriodId = periodId,
                 UserId = x.UserId,
-                Points = x.Count,
-                WorkoutCount = x.Count,
+                Points = x.Points,
+                WorkoutCount = x.Workouts,
                 Rank = index + 1,
                 CreatedAt = DateTime.UtcNow,
                 CreatedUser = adminUserId,
@@ -204,6 +217,74 @@ public class AdminLeaderboardService : IAdminLeaderboardService
             LeaderboardPeriodId = periodId,
             EntryCount = ranked.Count,
             RecalculatedAt = now,
+        };
+    }
+
+    public async Task<AdminLeaderboardDistributeRewardsResultDto> DistributeRewardsAsync(long periodId, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default)
+    {
+        await RecalculateAsync(periodId, adminUserId, ipAddress, userAgent, cancellationToken);
+
+        var rewardLinks = await _unitOfWork.Repository<LeaderboardReward>().GetQueryable()
+            .Where(x => x.LeaderboardPeriodId == periodId)
+            .ToListAsync(cancellationToken);
+        if (rewardLinks.Count == 0)
+        {
+            throw new ConflictException("Bu doneme bagli odul tanimi yok. Once siralara odul atayin.");
+        }
+
+        var ranks = rewardLinks.Select(x => x.Rank).Distinct().ToList();
+        var winners = await _unitOfWork.Repository<LeaderboardEntry>().GetQueryable()
+            .Where(x => x.LeaderboardPeriodId == periodId && ranks.Contains(x.Rank))
+            .ToDictionaryAsync(x => x.Rank, x => x.UserId, cancellationToken);
+
+        var existing = await _unitOfWork.Repository<UserReward>().GetQueryable()
+            .Where(x => x.LeaderboardPeriodId == periodId)
+            .Select(x => new { x.UserId, x.RewardId })
+            .ToListAsync(cancellationToken);
+        var existingKeys = existing.Select(x => (x.UserId, x.RewardId)).ToHashSet();
+
+        var now = DateTime.UtcNow;
+        var toCreate = new List<UserReward>();
+        var skipped = 0;
+        foreach (var link in rewardLinks.OrderBy(x => x.Rank))
+        {
+            if (!winners.TryGetValue(link.Rank, out var userId))
+            {
+                continue;
+            }
+
+            if (!existingKeys.Add((userId, link.RewardId)))
+            {
+                skipped++;
+                continue;
+            }
+
+            toCreate.Add(new UserReward
+            {
+                UserId = userId,
+                RewardId = link.RewardId,
+                LeaderboardPeriodId = periodId,
+                Rank = link.Rank,
+                Status = UserRewardStatus.Pending,
+                CreatedAt = now,
+                CreatedUser = adminUserId,
+            });
+        }
+
+        if (toCreate.Count > 0)
+        {
+            await _unitOfWork.Repository<UserReward>().AddRangeAsync(toCreate, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        await _auditLogService.LogAsync(adminUserId, "LEADERBOARD_REWARDS_DISTRIBUTED", nameof(LeaderboardPeriod), periodId, ipAddress, userAgent,
+            newValue: new { CreatedCount = toCreate.Count, SkippedCount = skipped }, cancellationToken: cancellationToken);
+
+        return new AdminLeaderboardDistributeRewardsResultDto
+        {
+            LeaderboardPeriodId = periodId,
+            CreatedCount = toCreate.Count,
+            SkippedCount = skipped,
         };
     }
 

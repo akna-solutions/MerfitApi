@@ -59,4 +59,12 @@ public class AdminLeaderboardController : AdminControllerBase
         var result = await _service.RecalculateAsync(periodId, CurrentAdminId, ClientIp, UserAgent, cancellationToken);
         return SuccessResponse(result);
     }
+
+    /// <summary>Siralamayi yeniden hesaplar ve odul tanimlarina gore kazananlara hediyelerini (UserReward) atar.</summary>
+    [HttpPost("leaderboards/{periodId:long}/distribute-rewards")]
+    public async Task<ActionResult<ApiResponse<AdminLeaderboardDistributeRewardsResultDto>>> DistributeRewards(long periodId, CancellationToken cancellationToken)
+    {
+        var result = await _service.DistributeRewardsAsync(periodId, CurrentAdminId, ClientIp, UserAgent, cancellationToken);
+        return SuccessResponse(result);
+    }
 }

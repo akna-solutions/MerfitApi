@@ -49,3 +49,14 @@ public class AdminLeaderboardRecalculateResultDto
     public int EntryCount { get; set; }
     public DateTime RecalculatedAt { get; set; }
 }
+
+public class AdminLeaderboardDistributeRewardsResultDto
+{
+    public long LeaderboardPeriodId { get; set; }
+
+    /// <summary>Bu cagrida olusturulan UserReward kaydi sayisi.</summary>
+    public int CreatedCount { get; set; }
+
+    /// <summary>Daha once dagitildigi icin atlanan kayit sayisi.</summary>
+    public int SkippedCount { get; set; }
+}

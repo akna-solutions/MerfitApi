@@ -11,23 +11,22 @@ namespace MerfitApi.Business.Services.Admin;
 /// <summary>
 /// IAdminScoreService'in varsayilan implementasyonu.
 ///
-/// RECALCULATE VARSAYIMI (madde 22): Repository icinde skorun nasil hesaplandigina dair bir
-/// algoritma/servis bulunmuyor (workout/streak/nutrition gibi kaynaklardan puan turetimi ayri bir
-/// is kuralidir ve bu depoda tanimli degildir). Bu nedenle "recalculate", MEVCUT en guncel
-/// MerfitScoreBreakdown kayitlarinin toplamini yeniden Score alanina yazan ve bir
-/// MerfitScoreHistory kaydi olusturan guvenli, veri kaybettirmeyen bir islem olarak
-/// yorumlanmistir. Gercek puanlama algoritmasi eklendiginde, bu metodun ic gorunumu
-/// degistirilip disaridan ayni sozlesme (recalculate) korunabilir.
+/// RECALCULATE: Kullanicinin tum zamanlar MB FIT puani MerfitPointsCalculator ile kaynak verilerden
+/// (antrenman, kisisel rekor, ogun/su kaydi, basari) yeniden hesaplanir; "AllTime" MerfitScore kaydi,
+/// kategori dagilimi (MerfitScoreBreakdown) ve gunluk MerfitScoreHistory kaydi guncellenir. Mobil
+/// uygulama API'si (MerfitCustomerApi) her aksiyondan sonra ayni ozeti ayni kurallarla yazar.
 /// </summary>
 public class AdminScoreService : IAdminScoreService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuditLogService _auditLogService;
+    private readonly MerfitPointsCalculator _pointsCalculator;
 
-    public AdminScoreService(IUnitOfWork unitOfWork, IAuditLogService auditLogService)
+    public AdminScoreService(IUnitOfWork unitOfWork, IAuditLogService auditLogService, MerfitPointsCalculator pointsCalculator)
     {
         _unitOfWork = unitOfWork;
         _auditLogService = auditLogService;
+        _pointsCalculator = pointsCalculator;
     }
 
     public async Task<PagedResult<AdminScoreListItemDto>> GetListAsync(AdminScoreListRequest request, CancellationToken cancellationToken = default)
@@ -111,26 +110,30 @@ public class AdminScoreService : IAdminScoreService
             throw new NotFoundException(nameof(ApplicationUser), userId);
         }
 
-        var scoreRepo = _unitOfWork.Repository<MerfitScore>();
-        var latest = await scoreRepo.GetQueryable(asNoTracking: false)
+        var previousScore = await _unitOfWork.Repository<MerfitScore>().GetQueryable()
             .Where(s => s.UserId == userId)
             .OrderByDescending(s => s.CalculatedAt)
-            .FirstOrDefaultAsync(cancellationToken);
+            .Select(s => (decimal?)s.Score)
+            .FirstOrDefaultAsync(cancellationToken) ?? 0m;
 
-        var previousScore = latest?.Score ?? 0;
+        var events = await _pointsCalculator.GetPointEventsAsync(null, null, userId, cancellationToken);
+        var total = (decimal)events.Sum(e => e.Points);
         var now = DateTime.UtcNow;
 
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
+        var scoreRepo = _unitOfWork.Repository<MerfitScore>();
+        var latest = await scoreRepo.GetQueryable(asNoTracking: false)
+            .Where(s => s.UserId == userId && s.Period == MerfitPointsCalculator.AllTimePeriodTag)
+            .OrderByDescending(s => s.CalculatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
         if (latest is null)
         {
-            // Kullanicinin hic skoru yoksa, sifir puanla baslangic kaydi olusturulur.
             latest = new MerfitScore
             {
                 UserId = userId,
-                Score = 0,
-                Period = "manual-recalculation",
-                CalculatedAt = now,
+                Period = MerfitPointsCalculator.AllTimePeriodTag,
                 CreatedAt = now,
                 CreatedUser = adminUserId,
             };
@@ -138,25 +141,53 @@ public class AdminScoreService : IAdminScoreService
         }
         else
         {
-            var breakdownTotal = await _unitOfWork.Repository<MerfitScoreBreakdown>().GetQueryable()
-                .Where(b => b.MerfitScoreId == latest.Id)
-                .SumAsync(b => (decimal?)b.Points, cancellationToken) ?? 0m;
-
-            latest.Score = breakdownTotal;
-            latest.CalculatedAt = now;
             latest.UpdatedAt = now;
             latest.UpdatedUser = adminUserId;
             scoreRepo.Update(latest);
         }
 
-        await _unitOfWork.Repository<MerfitScoreHistory>().AddAsync(new MerfitScoreHistory
+        latest.Score = total;
+        latest.CalculatedAt = now;
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var breakdownRepo = _unitOfWork.Repository<MerfitScoreBreakdown>();
+        breakdownRepo.RemoveRange(await breakdownRepo.FindAsync(b => b.MerfitScoreId == latest.Id, cancellationToken));
+        await breakdownRepo.AddRangeAsync(events
+            .GroupBy(e => e.Category)
+            .Select(g => new MerfitScoreBreakdown
+            {
+                MerfitScoreId = latest.Id,
+                Category = g.Key,
+                Points = g.Sum(e => e.Points),
+                CreatedAt = now,
+                CreatedUser = adminUserId,
+            }), cancellationToken);
+
+        var todayStart = _pointsCalculator.GetLocalDayStartUtc(now);
+        var historyRepo = _unitOfWork.Repository<MerfitScoreHistory>();
+        var todayHistory = await historyRepo.GetQueryable(asNoTracking: false)
+            .Where(h => h.UserId == userId && h.RecordedAt >= todayStart)
+            .OrderByDescending(h => h.RecordedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (todayHistory is null)
         {
-            UserId = userId,
-            Score = latest.Score,
-            RecordedAt = now,
-            CreatedAt = now,
-            CreatedUser = adminUserId,
-        }, cancellationToken);
+            await historyRepo.AddAsync(new MerfitScoreHistory
+            {
+                UserId = userId,
+                Score = total,
+                RecordedAt = now,
+                CreatedAt = now,
+                CreatedUser = adminUserId,
+            }, cancellationToken);
+        }
+        else
+        {
+            todayHistory.Score = total;
+            todayHistory.RecordedAt = now;
+            todayHistory.UpdatedAt = now;
+            todayHistory.UpdatedUser = adminUserId;
+            historyRepo.Update(todayHistory);
+        }
 
         await _unitOfWork.CommitTransactionAsync(cancellationToken);
 

@@ -88,6 +88,9 @@ builder.Services.AddScoped<IAdminSubscriptionService, AdminSubscriptionService>(
 builder.Services.AddScoped<IAdminSubscriptionTransactionService, AdminSubscriptionTransactionService>();
 builder.Services.AddScoped<IAdminNotificationService, AdminNotificationService>();
 builder.Services.AddScoped<IAdminAchievementService, AdminAchievementService>();
+// MB FIT puan kurallari (MerfitCustomerApi ile ayni "MerfitScoring" ayarlari).
+builder.Services.Configure<MerfitScoringOptions>(builder.Configuration.GetSection(MerfitScoringOptions.SectionName));
+builder.Services.AddScoped<MerfitPointsCalculator>();
 builder.Services.AddScoped<IAdminScoreService, AdminScoreService>();
 builder.Services.AddScoped<IAdminLeaderboardService, AdminLeaderboardService>();
 builder.Services.AddScoped<IAdminRewardService, AdminRewardService>();
