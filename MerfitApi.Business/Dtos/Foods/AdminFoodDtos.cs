@@ -17,6 +17,21 @@ public class AdminFoodListItemDto
     public decimal Fat { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>Besinsel kategori ("ProteinSource", "Dairy", "Legume", "GrainStarch", "Vegetable", "Fruit", "NutsSeedsFats", "Other"); null = siniflandirilmamis.</summary>
+    public string? Category { get; set; }
+
+    /// <summary>Uygun ogunler ("Breakfast", "Lunch", "Dinner", "Snack"); null = siniflandirilmamis.</summary>
+    public List<string>? MealTypes { get; set; }
+
+    /// <summary>Icerdigi alerjenler; null = dogrulanmamis (alerjisi olan kullanicilara onerilmez), bos liste = alerjen yok.</summary>
+    public List<string>? Allergens { get; set; }
+
+    /// <summary>Uygun diyetler ("Vegetarian", "Vegan"); null = dogrulanmamis (vejetaryen/vegan kullanicilara onerilmez).</summary>
+    public List<string>? DietTags { get; set; }
+
+    /// <summary>Kisisel beslenme programinda kullanilabilir mi (kategori ve uygun ogun girilmis).</summary>
+    public bool IsClassified { get; set; }
 }
 
 public class AdminFoodDetailDto : AdminFoodListItemDto
@@ -31,6 +46,9 @@ public class AdminFoodListRequest : PagedRequest
 {
     public string? Barcode { get; set; }
     public string? Brand { get; set; }
+
+    /// <summary>true: yalnizca siniflandirilmis, false: yalnizca siniflandirilmamis besinler.</summary>
+    public bool? IsClassified { get; set; }
 }
 
 public class AdminUpsertFoodRequest
@@ -76,4 +94,19 @@ public class AdminUpsertFoodRequest
     [StringLength(1000)]
     [Url(ErrorMessage = "Gecerli bir gorsel URL'i giriniz.")]
     public string? ImageUrl { get; set; }
+
+    /// <summary>Besinsel kategori; bos birakilirsa besin siniflandirilmamis sayilir ve programlarda kullanilmaz.</summary>
+    public string? Category { get; set; }
+
+    /// <summary>Uygun ogunler; null/bos birakilirsa besin programlarda kullanilmaz.</summary>
+    [MaxLength(4)]
+    public List<string>? MealTypes { get; set; }
+
+    /// <summary>Icerdigi alerjenler. null = dogrulanmamis; bos liste = alerjen icermedigi dogrulandi.</summary>
+    [MaxLength(9)]
+    public List<string>? Allergens { get; set; }
+
+    /// <summary>Uygun diyetler. null = dogrulanmamis; bos liste = vejetaryen/vegan degil.</summary>
+    [MaxLength(2)]
+    public List<string>? DietTags { get; set; }
 }

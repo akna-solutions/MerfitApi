@@ -1,8 +1,10 @@
 using System.Linq.Expressions;
+using MerfitApi.Business.Common;
 using MerfitApi.Business.Common.Pagination;
 using MerfitApi.Business.Dtos.Admin.Foods;
 using MerfitApi.Business.Interfaces.Services.Admin;
 using MerfitApi.Domain.Entities;
+using MerfitApi.Domain.Entities.Enums;
 using MerfitApi.Domain.Exceptions;
 using MerfitApi.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -49,25 +51,22 @@ public class AdminFoodService : IAdminFoodService
             query = query.Where(x => x.Brand != null && x.Brand.Contains(request.Brand));
         }
 
+        if (request.IsClassified.HasValue)
+        {
+            query = request.IsClassified.Value
+                ? query.Where(x => x.Category != null && x.Category != FoodCategory.Other && x.MealSuitability != null && x.MealSuitability != MealSuitability.None)
+                : query.Where(x => x.Category == null || x.Category == FoodCategory.Other || x.MealSuitability == null || x.MealSuitability == MealSuitability.None);
+        }
+
         var ordered = query.ApplySort(request.SortBy, request.IsDescending, SortMap, defaultKey: "name");
 
-        var mapped = ordered.Select(x => new AdminFoodListItemDto
-        {
-            Id = x.Id,
-            Name = x.Name,
-            Barcode = x.Barcode,
-            Brand = x.Brand,
-            ServingSize = x.ServingSize,
-            ServingUnit = x.ServingUnit,
-            Calories = x.Calories,
-            Protein = x.Protein,
-            Carbs = x.Carbs,
-            Fat = x.Fat,
-            ImageUrl = x.ImageUrl,
-            CreatedAt = x.CreatedAt,
-        });
+        var page = await ordered.ToPagedResultAsync(request.Page, request.PageSize, cancellationToken);
 
-        return await mapped.ToPagedResultAsync(request.Page, request.PageSize, cancellationToken);
+        return PagedResult<AdminFoodListItemDto>.Create(
+            page.Items.Select(x => MapListItem(new AdminFoodListItemDto(), x)).ToList(),
+            page.Page,
+            page.PageSize,
+            page.TotalCount);
     }
 
     public async Task<AdminFoodDetailDto> GetByIdAsync(long id, CancellationToken cancellationToken = default)
@@ -95,6 +94,7 @@ public class AdminFoodService : IAdminFoodService
             CreatedAt = DateTime.UtcNow,
             CreatedUser = adminUserId,
         };
+        ApplyClassification(entity, request);
 
         await _unitOfWork.Repository<Food>().AddAsync(entity, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -112,7 +112,7 @@ public class AdminFoodService : IAdminFoodService
         var entity = await repo.GetQueryable(asNoTracking: false).FirstOrDefaultAsync(x => x.Id == id, cancellationToken)
             ?? throw new NotFoundException(nameof(Food), id);
 
-        var oldValue = new { entity.Name, entity.Calories, entity.Protein, entity.Carbs, entity.Fat };
+        var oldValue = new { entity.Name, entity.Calories, entity.Protein, entity.Carbs, entity.Fat, entity.Category, entity.MealSuitability, entity.Allergens, entity.DietTags };
 
         entity.Name = request.Name.Trim();
         entity.Barcode = string.IsNullOrWhiteSpace(request.Barcode) ? null : request.Barcode.Trim();
@@ -127,6 +127,7 @@ public class AdminFoodService : IAdminFoodService
         entity.Sugar = request.Sugar;
         entity.Sodium = request.Sodium;
         entity.ImageUrl = request.ImageUrl;
+        ApplyClassification(entity, request);
         entity.UpdatedAt = DateTime.UtcNow;
         entity.UpdatedUser = adminUserId;
 
@@ -134,7 +135,7 @@ public class AdminFoodService : IAdminFoodService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         await _auditLogService.LogAsync(adminUserId, "FOOD_UPDATED", nameof(Food), id, ipAddress, userAgent,
-            oldValue, new { entity.Name, entity.Calories, entity.Protein, entity.Carbs, entity.Fat }, cancellationToken);
+            oldValue, new { entity.Name, entity.Calories, entity.Protein, entity.Carbs, entity.Fat, entity.Category, entity.MealSuitability, entity.Allergens, entity.DietTags }, cancellationToken);
 
         return MapToDetail(entity);
     }
@@ -183,23 +184,49 @@ public class AdminFoodService : IAdminFoodService
             ?? throw new NotFoundException(nameof(Food), id);
     }
 
-    private static AdminFoodDetailDto MapToDetail(Food entity) => new()
+    /// <summary>
+    /// Musteri API'sindeki kisisel beslenme programi yalnizca siniflandirilmis besinleri kullanir; alerjen ve
+    /// diyet bilgisi girilmemis (null) besinler alerjisi olan / vejetaryen kullanicilara onerilmez.
+    /// </summary>
+    private static void ApplyClassification(Food entity, AdminUpsertFoodRequest request)
     {
-        Id = entity.Id,
-        Name = entity.Name,
-        Barcode = entity.Barcode,
-        Brand = entity.Brand,
-        ServingSize = entity.ServingSize,
-        ServingUnit = entity.ServingUnit,
-        Calories = entity.Calories,
-        Protein = entity.Protein,
-        Carbs = entity.Carbs,
-        Fat = entity.Fat,
-        ImageUrl = entity.ImageUrl,
-        CreatedAt = entity.CreatedAt,
-        Fiber = entity.Fiber,
-        Sugar = entity.Sugar,
-        Sodium = entity.Sodium,
-        UpdatedAt = entity.UpdatedAt,
-    };
+        entity.Category = FoodClassificationCodes.ParseCategory(request.Category);
+        var mealSuitability = FoodClassificationCodes.ParseFlags<MealSuitability>(request.MealTypes, "mealTypes");
+        entity.MealSuitability = mealSuitability == MealSuitability.None ? null : mealSuitability;
+        entity.Allergens = FoodClassificationCodes.ParseFlags<FoodAllergen>(request.Allergens, "allergens");
+        entity.DietTags = FoodClassificationCodes.ParseFlags<DietTag>(request.DietTags, "dietTags");
+    }
+
+    private static TDto MapListItem<TDto>(TDto dto, Food entity) where TDto : AdminFoodListItemDto
+    {
+        dto.Id = entity.Id;
+        dto.Name = entity.Name;
+        dto.Barcode = entity.Barcode;
+        dto.Brand = entity.Brand;
+        dto.ServingSize = entity.ServingSize;
+        dto.ServingUnit = entity.ServingUnit;
+        dto.Calories = entity.Calories;
+        dto.Protein = entity.Protein;
+        dto.Carbs = entity.Carbs;
+        dto.Fat = entity.Fat;
+        dto.ImageUrl = entity.ImageUrl;
+        dto.CreatedAt = entity.CreatedAt;
+        dto.Category = FoodClassificationCodes.CategoryToCode(entity.Category);
+        dto.MealTypes = FoodClassificationCodes.FlagsToCodes(entity.MealSuitability);
+        dto.Allergens = FoodClassificationCodes.FlagsToCodes(entity.Allergens);
+        dto.DietTags = FoodClassificationCodes.FlagsToCodes(entity.DietTags);
+        dto.IsClassified = entity.Category.HasValue && entity.Category != FoodCategory.Other
+            && entity.MealSuitability.HasValue && entity.MealSuitability != MealSuitability.None;
+        return dto;
+    }
+
+    private static AdminFoodDetailDto MapToDetail(Food entity)
+    {
+        var dto = MapListItem(new AdminFoodDetailDto(), entity);
+        dto.Fiber = entity.Fiber;
+        dto.Sugar = entity.Sugar;
+        dto.Sodium = entity.Sodium;
+        dto.UpdatedAt = entity.UpdatedAt;
+        return dto;
+    }
 }
