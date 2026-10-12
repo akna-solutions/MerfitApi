@@ -43,6 +43,12 @@ public class AdminWorkoutPlanDayItemDto
     public long WorkoutId { get; set; }
     public string WorkoutTitle { get; set; } = string.Empty;
     public int Order { get; set; }
+
+    /// <summary>"Mon".."Sun" - mobil uygulamanin programi gunlere yerlestirdigi hafta gunu.</summary>
+    public string DayOfWeek { get; set; } = string.Empty;
+
+    /// <summary>Bu gune ait kisisellestirilmis egzersiz (WorkoutPlanExercise) sayisi.</summary>
+    public int ExerciseCount { get; set; }
 }
 
 /// <summary>PUT /api/admin/workout-plans/{id}/days govdesi; mevcut gun listesinin YERINI ALIR (replace-all).</summary>
@@ -59,4 +65,10 @@ public class AdminSetWorkoutPlanDayItem
 
     [Range(0, 400)]
     public int Order { get; set; }
+
+    /// <summary>
+    /// "Mon".."Sun". Gonderilmezse ayni siradaki mevcut gunun haftanin gunu korunur; o da yoksa
+    /// Pazartesi'den itibaren ilk bos gun atanir. Bir planda ayni gun iki kez kullanilamaz.
+    /// </summary>
+    public string? DayOfWeek { get; set; }
 }

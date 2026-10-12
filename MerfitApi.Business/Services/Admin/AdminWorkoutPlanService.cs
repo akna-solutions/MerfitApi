@@ -134,16 +134,29 @@ public class AdminWorkoutPlanService : IAdminWorkoutPlanService
         var days = _unitOfWork.Repository<WorkoutPlanDay>().GetQueryable();
         var workouts = _unitOfWork.Repository<Workout>().GetQueryable();
 
-        return await (from d in days
-                       where d.WorkoutPlanId == id
-                       join w in workouts on d.WorkoutId equals w.Id
-                       orderby d.Order
-                       select new AdminWorkoutPlanDayItemDto
-                       {
-                           WorkoutId = d.WorkoutId,
-                           WorkoutTitle = w.Title,
-                           Order = d.Order,
-                       }).ToListAsync(cancellationToken);
+        var planExercises = _unitOfWork.Repository<WorkoutPlanExercise>().GetQueryable();
+
+        var rows = await (from d in days
+                          where d.WorkoutPlanId == id
+                          join w in workouts on d.WorkoutId equals w.Id
+                          orderby d.Order, ((int)d.DayOfWeek + 6) % 7 // MerfitCustomerApi gunleri Order=0 ile uretir; hafta sirasi esas alinir
+                          select new
+                          {
+                              d.WorkoutId,
+                              w.Title,
+                              d.Order,
+                              d.DayOfWeek,
+                              ExerciseCount = planExercises.Count(pe => pe.WorkoutPlanDayId == d.Id),
+                          }).ToListAsync(cancellationToken);
+
+        return rows.Select(r => new AdminWorkoutPlanDayItemDto
+        {
+            WorkoutId = r.WorkoutId,
+            WorkoutTitle = r.Title,
+            Order = r.Order,
+            DayOfWeek = DayCodes[((int)r.DayOfWeek + 6) % 7],
+            ExerciseCount = r.ExerciseCount,
+        }).ToList();
     }
 
     public async Task<List<AdminWorkoutPlanDayItemDto>> SetDaysAsync(long id, AdminSetWorkoutPlanDaysRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default)
@@ -162,22 +175,89 @@ public class AdminWorkoutPlanService : IAdminWorkoutPlanService
             }
         }
 
+        var repo = _unitOfWork.Repository<WorkoutPlanDay>();
+        var existing = (await repo.FindAsync(x => x.WorkoutPlanId == id, cancellationToken))
+            .OrderBy(x => x.Order)
+            .ThenBy(x => ((int)x.DayOfWeek + 6) % 7)
+            .ToList();
+        var orderedRequest = request.Days.OrderBy(x => x.Order).ToList();
+        var dayOfWeeks = ResolveDaysOfWeek(orderedRequest, existing);
+
+        // Mobil uygulama (MerfitCustomerApi) plan gununden baslatilan antrenmanda hedef set/tekrar
+        // degerlerini WorkoutPlanExercise'dan okur; bu kayitlar olmadan gun bos antrenman acar.
+        // Ayni antrenman planda zaten varsa kullaniciya ozel degerleri korunur, yoksa antrenmanin
+        // katalogdaki (WorkoutExercise) degerleri kopyalanir.
+        var existingDayIds = existing.Select(d => d.Id).ToList();
+        var existingPlanExercises = await _unitOfWork.Repository<WorkoutPlanExercise>()
+            .FindAsync(x => existingDayIds.Contains(x.WorkoutPlanDayId), cancellationToken);
+        var catalogExercises = await _unitOfWork.Repository<WorkoutExercise>()
+            .FindAsync(x => workoutIds.Contains(x.WorkoutId), cancellationToken);
+
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
-        var repo = _unitOfWork.Repository<WorkoutPlanDay>();
-        var existing = await repo.FindAsync(x => x.WorkoutPlanId == id, cancellationToken);
+        // Eski gunlerin WorkoutPlanExercise kayitlari veritabaninda cascade ile, bu gunlere bagli
+        // gecmis WorkoutSession.WorkoutPlanDayId degerleri SET NULL ile temizlenir.
         repo.RemoveRange(existing);
 
-        var newDays = request.Days.Select(x => new WorkoutPlanDay
+        var newDays = orderedRequest.Select((x, index) => new WorkoutPlanDay
         {
             WorkoutPlanId = id,
             WorkoutId = x.WorkoutId,
             Order = x.Order,
+            DayOfWeek = dayOfWeeks[index],
             CreatedAt = DateTime.UtcNow,
             CreatedUser = adminUserId,
         }).ToList();
 
         await repo.AddRangeAsync(newDays, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken); // yeni gunlerin Id'leri atanir
+
+        var newPlanExercises = new List<WorkoutPlanExercise>();
+        foreach (var day in newDays)
+        {
+            var previousDay = existing.FirstOrDefault(d => d.WorkoutId == day.WorkoutId);
+            var previous = previousDay is null
+                ? new List<WorkoutPlanExercise>()
+                : existingPlanExercises.Where(pe => pe.WorkoutPlanDayId == previousDay.Id).ToList();
+
+            if (previous.Count > 0)
+            {
+                newPlanExercises.AddRange(previous.Select(pe => new WorkoutPlanExercise
+                {
+                    WorkoutPlanDayId = day.Id,
+                    ExerciseId = pe.ExerciseId,
+                    Order = pe.Order,
+                    Sets = pe.Sets,
+                    Reps = pe.Reps,
+                    RestSeconds = pe.RestSeconds,
+                    DurationSeconds = pe.DurationSeconds,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedUser = adminUserId,
+                }));
+            }
+            else
+            {
+                newPlanExercises.AddRange(catalogExercises
+                    .Where(we => we.WorkoutId == day.WorkoutId)
+                    .Select(we => new WorkoutPlanExercise
+                    {
+                        WorkoutPlanDayId = day.Id,
+                        ExerciseId = we.ExerciseId,
+                        Order = we.Order,
+                        Sets = we.Sets,
+                        Reps = we.Reps,
+                        RestSeconds = we.RestSeconds,
+                        DurationSeconds = we.DurationSeconds,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedUser = adminUserId,
+                    }));
+            }
+        }
+
+        if (newPlanExercises.Count > 0)
+        {
+            await _unitOfWork.Repository<WorkoutPlanExercise>().AddRangeAsync(newPlanExercises, cancellationToken);
+        }
 
         await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
@@ -185,6 +265,54 @@ public class AdminWorkoutPlanService : IAdminWorkoutPlanService
             oldValue: existing.Select(x => x.WorkoutId), newValue: workoutIds, cancellationToken: cancellationToken);
 
         return await GetDaysAsync(id, cancellationToken);
+    }
+
+    private static readonly string[] DayCodes = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
+    /// <summary>
+    /// Istekteki her gun icin haftanin gununu belirler: acikca verilen deger, yoksa ayni siradaki
+    /// mevcut gunun degeri, o da yoksa Pazartesi'den itibaren ilk bos gun.
+    /// </summary>
+    private static List<DayOfWeek> ResolveDaysOfWeek(List<AdminSetWorkoutPlanDayItem> items, List<WorkoutPlanDay> existing)
+    {
+        if (items.Count > 7)
+        {
+            throw new AppValidationException("Days", "Bir planda en fazla 7 gun olabilir.");
+        }
+
+        var result = new DayOfWeek?[items.Count];
+        for (var i = 0; i < items.Count; i++)
+        {
+            var code = items[i].DayOfWeek;
+            if (code is null) continue;
+
+            var index = Array.FindIndex(DayCodes, c => string.Equals(c, code.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (index < 0)
+            {
+                throw new AppValidationException("Days", "Gecersiz gun. Gecerli degerler: Mon, Tue, Wed, Thu, Fri, Sat, Sun.");
+            }
+            result[i] = (DayOfWeek)((index + 1) % 7);
+        }
+
+        for (var i = 0; i < items.Count; i++)
+        {
+            if (result[i].HasValue) continue;
+            if (i < existing.Count && !result.Contains(existing[i].DayOfWeek))
+            {
+                result[i] = existing[i].DayOfWeek;
+                continue;
+            }
+            result[i] = Enumerable.Range(0, 7)
+                .Select(n => (DayOfWeek)((n + 1) % 7)) // Pazartesi'den baslayarak
+                .First(day => !result.Contains(day));
+        }
+
+        var days = result.Select(d => d!.Value).ToList();
+        if (days.Distinct().Count() != days.Count)
+        {
+            throw new AppValidationException("Days", "Ayni gun bir planda birden fazla kez kullanilamaz.");
+        }
+        return days;
     }
 
     private async Task<WorkoutPlan> GetOrThrowAsync(long id, CancellationToken cancellationToken)

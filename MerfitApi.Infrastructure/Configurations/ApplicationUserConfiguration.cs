@@ -55,10 +55,12 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
             .HasMaxLength(300);
 
         // Kullanicinin yetki seviyesi (User/Admin/SuperAdmin); okunabilirlik icin string olarak saklanir.
+        // HasDefaultValue KULLANILMAZ: Sema MerfitCustomerApi migration'larindan geliyor ve kolonda
+        // varsayilan deger yok. HasDefaultValue(User) olsaydi EF, Role = User iken kolonu INSERT'e
+        // hic koymaz ve NOT NULL ihlali olusurdu.
         builder.Property(x => x.Role)
             .IsRequired(true)
             .HasMaxLength(50)
-            .HasConversion<string>()
-            .HasDefaultValue(MerfitApi.Domain.Entities.Enums.UserRole.User);
+            .HasConversion<string>();
     }
 }
