@@ -23,4 +23,10 @@ public interface IAdminLeaderboardService
     /// antrenman oturumu (WorkoutSession) sayisi uzerinden yapilir (bkz. AdminLeaderboardService yorumu).
     /// </summary>
     Task<AdminLeaderboardRecalculateResultDto> RecalculateAsync(long periodId, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Donem siralamasini yeniden hesaplar ve LeaderboardReward tanimlarindaki siralara giren kullanicilara
+    /// UserReward (Pending) kaydi olusturur. Ayni kullanici/odul/donem icin tekrar kayit olusturmaz.
+    /// </summary>
+    Task<AdminLeaderboardDistributeRewardsResultDto> DistributeRewardsAsync(long periodId, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
 }
