@@ -248,6 +248,11 @@ public class AppDbContext : DbContext
     public DbSet<MerfitScore> MerfitScores => Set<MerfitScore>();
 
     /// <summary>
+    /// MiniGameSession kayitlarina erisim saglayan DbSet (mini oyun odulleri; tablo MerfitCustomerApi migration'i ile olusur).
+    /// </summary>
+    public DbSet<MiniGameSession> MiniGameSessions => Set<MiniGameSession>();
+
+    /// <summary>
     /// MerfitScoreBreakdown kayitlarina erisim saglayan DbSet.
     /// </summary>
     public DbSet<MerfitScoreBreakdown> MerfitScoreBreakdowns => Set<MerfitScoreBreakdown>();
