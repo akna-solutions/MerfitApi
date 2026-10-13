@@ -24,6 +24,7 @@ public class MerfitPointsCalculator
     public const string NutritionCategory = "nutrition";
     public const string WaterCategory = "water";
     public const string AchievementsCategory = "achievements";
+    public const string MiniGameCategory = "mini_game";
 
     private readonly IUnitOfWork _unitOfWork;
     private readonly MerfitScoringOptions _options;
@@ -96,6 +97,17 @@ public class MerfitPointsCalculator
         if (toUtc.HasValue) achievementQuery = achievementQuery.Where(x => x.EarnedAt < toUtc.Value);
         var achievements = await achievementQuery.ToListAsync(cancellationToken);
         events.AddRange(achievements.Select(x => new MerfitPointEvent(x.UserId, x.EarnedAt, AchievementsCategory, x.Points)));
+
+        // Mini oyun odulleri: limitler odul aninda uygulanip MiniGameSession.AwardedPoints'e yazilir.
+        var miniGameQuery = _unitOfWork.Repository<MiniGameSession>().GetQueryable()
+            .Where(s => s.Status == MiniGameSessionStatus.Completed && s.AwardedPoints > 0 && s.CompletedAt != null);
+        if (userId.HasValue) miniGameQuery = miniGameQuery.Where(s => s.UserId == userId.Value);
+        if (fromUtc.HasValue) miniGameQuery = miniGameQuery.Where(s => s.CompletedAt >= fromUtc.Value);
+        if (toUtc.HasValue) miniGameQuery = miniGameQuery.Where(s => s.CompletedAt < toUtc.Value);
+        var miniGames = await miniGameQuery
+            .Select(s => new { s.UserId, CompletedAt = s.CompletedAt!.Value, s.AwardedPoints })
+            .ToListAsync(cancellationToken);
+        events.AddRange(miniGames.Select(x => new MerfitPointEvent(x.UserId, x.CompletedAt, MiniGameCategory, x.AwardedPoints)));
 
         return events.Where(e => e.Points > 0).ToList();
     }
