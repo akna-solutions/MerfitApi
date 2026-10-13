@@ -20,7 +20,12 @@ public enum AiRequestType
     /// <summary>
     /// Kisisel ic gorulama/analiz uretimi.
     /// </summary>
-    Insight
+    Insight,
+    /// <summary>
+    /// Beslenme asistani sohbet yaniti (MerfitCustomerApi /api/nutrition-assistant/chat). Kayitlar
+    /// kullanici mesajini icermez; ResultJson token ve sure bilgisini tasir.
+    /// </summary>
+    NutritionAssistant
 }
 
 /// <summary>
