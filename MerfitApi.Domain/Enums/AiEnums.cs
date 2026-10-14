@@ -25,7 +25,13 @@ public enum AiRequestType
     /// Beslenme asistani sohbet yaniti (MerfitCustomerApi /api/nutrition-assistant/chat). Kayitlar
     /// kullanici mesajini icermez; ResultJson token ve sure bilgisini tasir.
     /// </summary>
-    NutritionAssistant
+    NutritionAssistant,
+    /// <summary>
+    /// Yemek fotografindan kalori/makro analizi (MerfitCustomerApi /api/food-analysis/analyze). Fotograf
+    /// saklanmaz; Prompt yalnizca boyut/tur ozetini, ResultJson tahmin edilen yemekleri ya da onaylanan
+    /// ogun kayitlarini tasir.
+    /// </summary>
+    FoodPhotoAnalysis
 }
 
 /// <summary>
