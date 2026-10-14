@@ -107,6 +107,20 @@ public class AdminUpdateUserStatusRequest
     public string? Reason { get; set; }
 }
 
+/// <summary>
+/// PATCH /api/admin/users/{id}/email-confirmation govdesi. Kod e-postasi ulasmayan kullanicilar
+/// icin destek ekibinin e-postayi elle dogrulanmis isaretlemesini (veya dogrulamayi geri almasini) saglar.
+/// </summary>
+public class AdminUpdateUserEmailConfirmationRequest
+{
+    [Required(ErrorMessage = "emailConfirmed alani zorunludur.")]
+    public bool EmailConfirmed { get; set; }
+
+    /// <summary>Islemin sebebi (audit log'a yazilir, opsiyonel).</summary>
+    [StringLength(500)]
+    public string? Reason { get; set; }
+}
+
 public class AdminUserSubscriptionListItemDto
 {
     public long Id { get; set; }
