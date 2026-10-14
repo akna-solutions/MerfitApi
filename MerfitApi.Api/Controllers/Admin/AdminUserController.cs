@@ -40,6 +40,17 @@ public class AdminUserController : AdminControllerBase
         return SuccessResponse();
     }
 
+    /// <summary>
+    /// Kullanicinin e-posta dogrulama durumunu elle degistirir (audit log'a yazilir). Dogrulama kodu
+    /// ulasmayan kullanicilarin uygulamaya devam edebilmesi icin destek ekibi kullanir.
+    /// </summary>
+    [HttpPatch("{userId:long}/email-confirmation")]
+    public async Task<ActionResult<ApiResponse>> UpdateEmailConfirmation(long userId, [FromBody] AdminUpdateUserEmailConfirmationRequest request, CancellationToken cancellationToken)
+    {
+        await _userService.UpdateEmailConfirmationAsync(userId, request, CurrentAdminId, ClientIp, UserAgent, cancellationToken);
+        return SuccessResponse();
+    }
+
     /// <summary>Kullaniciyi soft-delete eder (DeletedAt doldurulur, fiziksel silme yapilmaz).</summary>
     [HttpDelete("{userId:long}")]
     public async Task<ActionResult<ApiResponse>> Delete(long userId, CancellationToken cancellationToken)

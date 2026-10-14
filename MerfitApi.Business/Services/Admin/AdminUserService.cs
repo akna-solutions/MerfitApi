@@ -241,6 +241,31 @@ public class AdminUserService : IAdminUserService
             oldValue, new { user.IsActive, request.Reason }, cancellationToken);
     }
 
+    public async Task UpdateEmailConfirmationAsync(long userId, AdminUpdateUserEmailConfirmationRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default)
+    {
+        var repo = _unitOfWork.Repository<ApplicationUser>();
+        var user = await repo.GetQueryable(asNoTracking: false).FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
+            ?? throw new NotFoundException(nameof(ApplicationUser), userId);
+
+        if (user.EmailConfirmed == request.EmailConfirmed)
+        {
+            return;
+        }
+
+        var oldValue = new { user.EmailConfirmed };
+
+        user.EmailConfirmed = request.EmailConfirmed;
+        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedUser = adminUserId;
+
+        repo.Update(user);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        await _auditLogService.LogAsync(
+            adminUserId, "USER_EMAIL_CONFIRMATION_CHANGED", nameof(ApplicationUser), userId, ipAddress, userAgent,
+            oldValue, new { user.EmailConfirmed, request.Reason }, cancellationToken);
+    }
+
     public async Task SoftDeleteAsync(long userId, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default)
     {
         var repo = _unitOfWork.Repository<ApplicationUser>();

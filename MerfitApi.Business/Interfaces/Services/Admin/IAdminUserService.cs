@@ -15,6 +15,7 @@ public interface IAdminUserService
     Task<AdminUserDetailDto> GetByIdAsync(long userId, CancellationToken cancellationToken = default);
 
     Task UpdateStatusAsync(long userId, AdminUpdateUserStatusRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
+    Task UpdateEmailConfirmationAsync(long userId, AdminUpdateUserEmailConfirmationRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
 
     Task SoftDeleteAsync(long userId, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
 
