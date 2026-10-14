@@ -19,7 +19,13 @@ public class AdminAiNutritionAssistantTests
         new(new DbContextOptionsBuilder<AppDbContext>().UseNpgsql(Environment.GetEnvironmentVariable(PostgresNotificationJobStoreTests.ConnectionVariable)).Options);
 
     [PostgresFact]
-    public async Task NutritionAssistantRequests_AreListedFilteredAndCounted()
+    public Task NutritionAssistantRequests_AreListedFilteredAndCounted() => AssertListedFilteredAndCounted(AiRequestType.NutritionAssistant);
+
+    /// <summary>MerfitCustomerApi fotograf analizi kayitlari (Type = "FoodPhotoAnalysis") da okunabilmeli.</summary>
+    [PostgresFact]
+    public Task FoodPhotoAnalysisRequests_AreListedFilteredAndCounted() => AssertListedFilteredAndCounted(AiRequestType.FoodPhotoAnalysis);
+
+    private static async Task AssertListedFilteredAndCounted(AiRequestType type)
     {
         long userId;
         long requestId;
@@ -38,7 +44,7 @@ public class AdminAiNutritionAssistantTests
 
             var request = new AiGenerationRequest
             {
-                UserId = userId, Type = AiRequestType.NutritionAssistant, Status = AiGenerationStatus.Completed, Model = model,
+                UserId = userId, Type = type, Status = AiGenerationStatus.Completed, Model = model,
                 Prompt = "Beslenme asistanı sohbeti (sohbet #1, gün 2026-10-13)",
                 StartedAt = DateTime.UtcNow, CompletedAt = DateTime.UtcNow.AddSeconds(2), CreatedAt = DateTime.UtcNow,
             };
@@ -50,15 +56,15 @@ public class AdminAiNutritionAssistantTests
         await using var read = CreateContext();
         var service = new AdminAiService(new UnitOfWork(read));
 
-        var page = await service.GetRequestsAsync(new AdminAiRequestListRequest { UserId = userId, Type = AiRequestType.NutritionAssistant });
+        var page = await service.GetRequestsAsync(new AdminAiRequestListRequest { UserId = userId, Type = type });
         var item = Assert.Single(page.Items);
-        Assert.Equal("NutritionAssistant", item.Type);
+        Assert.Equal(type.ToString(), item.Type);
         Assert.Equal(model, item.Model);
 
         var detail = await service.GetRequestByIdAsync(requestId);
-        Assert.Equal("NutritionAssistant", detail.Type);
+        Assert.Equal(type.ToString(), detail.Type);
 
         var stats = await service.GetStatisticsAsync();
-        Assert.Contains(stats.RequestTypeDistribution, d => d.Key == "NutritionAssistant" && d.Count >= 1);
+        Assert.Contains(stats.RequestTypeDistribution, d => d.Key == type.ToString() && d.Count >= 1);
     }
 }
