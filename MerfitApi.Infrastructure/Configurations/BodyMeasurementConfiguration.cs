@@ -32,6 +32,18 @@ public class BodyMeasurementConfiguration : IEntityTypeConfiguration<BodyMeasure
         builder.Property(x => x.BodyFatPercentage)
             .HasPrecision(18, 2);
 
+        // Cevre olcumlerinden hesaplanan tahmini yag orani (yuzde).
+        builder.Property(x => x.EstimatedBodyFatPercentage)
+            .HasPrecision(18, 2);
+
+        // Tahmin yontemi ("UsNavy").
+        builder.Property(x => x.BodyFatEstimationMethod)
+            .HasMaxLength(30);
+
+        // Boyun cevresi (santimetre).
+        builder.Property(x => x.NeckCm)
+            .HasPrecision(18, 2);
+
         // Vucut kitle indeksi.
         builder.Property(x => x.BMI)
             .HasPrecision(18, 2);

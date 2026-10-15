@@ -24,7 +24,10 @@ public enum Gender
 }
 
 /// <summary>
-/// Kullanicinin fitness hedefini ifade eder.
+/// Kullanicinin fitness hedefini ifade eder. Kullaniciya yalnizca LoseWeight (Yag Kaybi), BuildMuscle
+/// (Kas Gelistirme) ve GetStronger (Guclenme) sunulur. MaintainWeight, ImproveEndurance ve ImproveFitness
+/// eski kayitlarla uyumluluk icin korunur (silinmez, yeniden siralanmaz) ve Kas Gelistirme olarak yorumlanir
+/// (bkz. MerfitCustomerApi FitnessGoals.Normalize ve NormalizeLegacyFitnessGoals migration'i).
 /// </summary>
 public enum FitnessGoal
 {
@@ -37,11 +40,11 @@ public enum FitnessGoal
     /// </summary>
     BuildMuscle,
     /// <summary>
-    /// Mevcut kiloyu koruma hedefi.
+    /// Eski: mevcut kiloyu koruma hedefi (Kas Gelistirme olarak yorumlanir).
     /// </summary>
     MaintainWeight,
     /// <summary>
-    /// Dayaniklilik gelistirme hedefi.
+    /// Eski: dayaniklilik gelistirme hedefi (Kas Gelistirme olarak yorumlanir).
     /// </summary>
     ImproveEndurance,
     /// <summary>
@@ -49,7 +52,7 @@ public enum FitnessGoal
     /// </summary>
     GetStronger,
     /// <summary>
-    /// Genel fitness seviyesini gelistirme hedefi.
+    /// Eski: genel fitness seviyesini gelistirme hedefi (Kas Gelistirme olarak yorumlanir).
     /// </summary>
     ImproveFitness
 }

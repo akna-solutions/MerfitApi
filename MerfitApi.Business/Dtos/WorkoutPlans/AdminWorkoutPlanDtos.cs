@@ -42,6 +42,11 @@ public class AdminWorkoutPlanDayItemDto
 {
     public long WorkoutId { get; set; }
     public string WorkoutTitle { get; set; } = string.Empty;
+
+    /// <summary>Antrenman sonu kardiyo (MerfitCustomerApi plan uretimi ekler); yoksa null.</summary>
+    public long? CardioWorkoutId { get; set; }
+    public string? CardioWorkoutTitle { get; set; }
+
     public int Order { get; set; }
 
     /// <summary>"Mon".."Sun" - mobil uygulamanin programi gunlere yerlestirdigi hafta gunu.</summary>

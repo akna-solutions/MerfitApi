@@ -36,5 +36,12 @@ public class WorkoutPlanDayConfiguration : IEntityTypeConfiguration<WorkoutPlanD
             .WithMany()
             .HasForeignKey(x => x.WorkoutId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Antrenman sonu kardiyo (opsiyonel).
+        builder.HasOne<Workout>()
+            .WithMany()
+            .HasForeignKey(x => x.CardioWorkoutId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

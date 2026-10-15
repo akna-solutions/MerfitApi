@@ -25,6 +25,9 @@ public class WorkoutPlanExercise : BaseEntity
     /// <summary>Kullaniciya ozel set basina hedef tekrar sayisi.</summary>
     public int? Reps { get; set; }
 
+    /// <summary>Tekrar araliginin ust siniri (Reps alt siniri); cift progresyon icin. Yoksa null.</summary>
+    public int? RepsMax { get; set; }
+
     /// <summary>Kullaniciya ozel setler arasi dinlenme suresi (saniye).</summary>
     public int? RestSeconds { get; set; }
 
