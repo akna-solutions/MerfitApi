@@ -312,9 +312,8 @@ public class AuthService : IAuthService
             "lose_weight" => FitnessGoal.LoseWeight,
             "build_muscle" => FitnessGoal.BuildMuscle,
             "get_stronger" => FitnessGoal.GetStronger,
-            "improve_fitness" => FitnessGoal.ImproveFitness,
-            "maintain_weight" => FitnessGoal.MaintainWeight,
-            "improve_endurance" => FitnessGoal.ImproveEndurance,
+            // Eski hedef kodlari artik sunulmuyor; Kas Gelistirme olarak kaydedilir (MerfitCustomerApi ile ayni esleme).
+            "improve_fitness" or "maintain_weight" or "improve_endurance" => FitnessGoal.BuildMuscle,
             _ => null,
         };
     }

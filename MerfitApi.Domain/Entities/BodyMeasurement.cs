@@ -32,6 +32,18 @@ public class BodyMeasurement : BaseEntity
     public decimal? BodyFatPercentage { get; set; }
 
     /// <summary>
+    /// Cevre olcumlerinden hesaplanan TAHMINI yag orani (US Navy). Girilen/olculen degerden
+    /// (BodyFatPercentage) ayri tutulur. MerfitCustomerApi yazar.
+    /// </summary>
+    public decimal? EstimatedBodyFatPercentage { get; set; }
+
+    /// <summary>Tahmin yontemi ("UsNavy") veya null.</summary>
+    public string? BodyFatEstimationMethod { get; set; }
+
+    /// <summary>Boyun cevresi (santimetre); yag orani tahmini icin gerekir.</summary>
+    public decimal? NeckCm { get; set; }
+
+    /// <summary>
     /// Vucut kitle indeksi.
     /// </summary>
     public decimal? BMI { get; set; }

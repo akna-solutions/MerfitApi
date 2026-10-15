@@ -144,6 +144,8 @@ public class AdminWorkoutPlanService : IAdminWorkoutPlanService
                           {
                               d.WorkoutId,
                               w.Title,
+                              d.CardioWorkoutId,
+                              CardioTitle = workouts.Where(c => c.Id == d.CardioWorkoutId).Select(c => c.Title).FirstOrDefault(),
                               d.Order,
                               d.DayOfWeek,
                               ExerciseCount = planExercises.Count(pe => pe.WorkoutPlanDayId == d.Id),
@@ -153,6 +155,8 @@ public class AdminWorkoutPlanService : IAdminWorkoutPlanService
         {
             WorkoutId = r.WorkoutId,
             WorkoutTitle = r.Title,
+            CardioWorkoutId = r.CardioWorkoutId,
+            CardioWorkoutTitle = r.CardioTitle,
             Order = r.Order,
             DayOfWeek = DayCodes[((int)r.DayOfWeek + 6) % 7],
             ExerciseCount = r.ExerciseCount,
@@ -203,6 +207,8 @@ public class AdminWorkoutPlanService : IAdminWorkoutPlanService
         {
             WorkoutPlanId = id,
             WorkoutId = x.WorkoutId,
+            // Ayni antrenman planda zaten varsa antrenman sonu kardiyosu korunur.
+            CardioWorkoutId = existing.FirstOrDefault(d => d.WorkoutId == x.WorkoutId)?.CardioWorkoutId,
             Order = x.Order,
             DayOfWeek = dayOfWeeks[index],
             CreatedAt = DateTime.UtcNow,
@@ -229,6 +235,7 @@ public class AdminWorkoutPlanService : IAdminWorkoutPlanService
                     Order = pe.Order,
                     Sets = pe.Sets,
                     Reps = pe.Reps,
+                    RepsMax = pe.RepsMax,
                     RestSeconds = pe.RestSeconds,
                     DurationSeconds = pe.DurationSeconds,
                     CreatedAt = DateTime.UtcNow,

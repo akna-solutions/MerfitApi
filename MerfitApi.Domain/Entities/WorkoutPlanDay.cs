@@ -27,6 +27,11 @@ public class WorkoutPlanDay : BaseEntity
     public long WorkoutId { get; set; }
 
     /// <summary>
+    /// Ana antrenmandan sonra yapilacak antrenman sonu kardiyonun (katalog antrenmani) kimligi; yoksa null.
+    /// </summary>
+    public long? CardioWorkoutId { get; set; }
+
+    /// <summary>
     /// Ayni gun icindeki siralama degeri.
     /// </summary>
     public int Order { get; set; }

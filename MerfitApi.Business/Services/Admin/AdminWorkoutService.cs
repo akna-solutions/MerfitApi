@@ -17,6 +17,17 @@ namespace MerfitApi.Business.Services.Admin;
 /// </summary>
 public class AdminWorkoutService : IAdminWorkoutService
 {
+    /// <summary>
+    /// Plan uretiminde hedef uyumuna katilan ana ozellikler (MerfitCustomerApi GoalAttributeWeights.PrimaryAttributes).
+    /// Endurance, Mobility ve CoreStability ikincil bilgidir ve plan uretimini etkilemez.
+    /// </summary>
+    private static readonly WorkoutAttributeType[] PrimaryAttributeTypes =
+    {
+        WorkoutAttributeType.Hypertrophy,
+        WorkoutAttributeType.Strength,
+        WorkoutAttributeType.Cardio,
+    };
+
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuditLogService _auditLogService;
 
@@ -181,7 +192,9 @@ public class AdminWorkoutService : IAdminWorkoutService
         var entity = await repo.GetByIdAsync(id, cancellationToken)
             ?? throw new NotFoundException(nameof(Workout), id);
 
-        var isUsedInPlans = await _unitOfWork.Repository<WorkoutPlanDay>().AnyAsync(x => x.WorkoutId == id, cancellationToken);
+        // Antrenman sonu kardiyo olarak kullanilan antrenmanlar da plana baglidir (FK Restrict).
+        var isUsedInPlans = await _unitOfWork.Repository<WorkoutPlanDay>()
+            .AnyAsync(x => x.WorkoutId == id || x.CardioWorkoutId == id, cancellationToken);
         var hasSessionHistory = await _unitOfWork.Repository<WorkoutSession>().AnyAsync(x => x.WorkoutId == id, cancellationToken);
 
         if (isUsedInPlans || hasSessionHistory)
@@ -420,6 +433,11 @@ public class AdminWorkoutService : IAdminWorkoutService
                 .Where(t => !scoredTypes.Contains(t))
                 .Select(t => t.ToString())
                 .ToList(),
+            MissingPrimaryAttributeTypes = PrimaryAttributeTypes
+                .Where(t => !scoredTypes.Contains(t))
+                .Select(t => t.ToString())
+                .ToList(),
+            IsPrimaryComplete = PrimaryAttributeTypes.All(scoredTypes.Contains),
         };
     }
 
@@ -446,6 +464,18 @@ public class AdminWorkoutService : IAdminWorkoutService
             {
                 throw new AppValidationException(nameof(AdminWorkoutAttributeScoreInput.AttributeType),
                     $"{item.AttributeType.Value} ozelligi birden fazla kez gonderilemez.");
+            }
+        }
+
+        // Plan uretimi yalnizca uc ana ozelligi (Hipertrofi, Kuvvet, Kardiyo) kullanir; eksik ana puan 0 sayilir.
+        // Kismi puanin antrenmani haksiz yere one/arkaya itmemesi icin puan giriliyorsa uclu birlikte zorunludur.
+        if (requested.Count > 0)
+        {
+            var missingPrimary = PrimaryAttributeTypes.Where(t => !requested.ContainsKey(t)).ToList();
+            if (missingPrimary.Count > 0)
+            {
+                throw new AppValidationException(nameof(AdminSetWorkoutAttributeScoresRequest.Scores),
+                    $"Hipertrofi, Kuvvet ve Kardiyo puanlari birlikte girilmelidir (eksik: {string.Join(", ", missingPrimary)}).");
             }
         }
 
