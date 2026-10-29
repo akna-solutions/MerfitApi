@@ -43,7 +43,7 @@ public class AdminUpsertContentRequest
     [StringLength(50)]
     public string Type { get; set; } = string.Empty;
 
-    [StringLength(300)]
+    [StringLength(200)]
     public string? Title { get; set; }
 
     [StringLength(2000)]

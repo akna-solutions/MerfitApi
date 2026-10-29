@@ -55,4 +55,19 @@ public class AppContent : BaseEntity
     /// Icerigin yayindan kaldirilma tarihi.
     /// </summary>
     public DateTime? EndAt { get; set; }
+
+    /// <summary>
+    /// Kampanya detay metni (uzun aciklama). Description kisa ozet olarak kullanilir.
+    /// </summary>
+    public string? Body { get; set; }
+
+    /// <summary>
+    /// Ayni turdeki iceriklerin gosterim sirasi (kucuk deger once).
+    /// </summary>
+    public int SortOrder { get; set; }
+
+    /// <summary>
+    /// Istege bagli kategori/etiket (orn. "Beslenme", "Uyelik").
+    /// </summary>
+    public string? Category { get; set; }
 }
