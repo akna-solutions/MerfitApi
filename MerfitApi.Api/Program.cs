@@ -112,6 +112,7 @@ builder.Services.AddScoped<IAdminRewardService, AdminRewardService>();
 builder.Services.AddScoped<IAdminSupportTicketService, AdminSupportTicketService>();
 builder.Services.AddScoped<IAdminFaqService, AdminFaqService>();
 builder.Services.AddScoped<IAdminContentService, AdminContentService>();
+builder.Services.AddScoped<IAdminCampaignService, AdminCampaignService>();
 builder.Services.AddScoped<IAdminLanguageService, AdminLanguageService>();
 builder.Services.AddScoped<IAdminTranslationService, AdminTranslationService>();
 builder.Services.AddScoped<IAdminLegalService, AdminLegalService>();

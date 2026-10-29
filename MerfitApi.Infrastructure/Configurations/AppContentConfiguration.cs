@@ -53,5 +53,19 @@ public class AppContentConfiguration : IEntityTypeConfiguration<AppContent>
         builder.Property(x => x.LinkUrl)
             .IsRequired(false)
             .HasMaxLength(500);
+
+        // Kampanya detay metni. Sema MerfitCustomerApi migration'i (HomeCalendarCampaigns) ile olusturulur.
+        builder.Property(x => x.Body)
+            .IsRequired(false)
+            .HasMaxLength(8000);
+
+        // Gosterim sirasi.
+        builder.Property(x => x.SortOrder)
+            .HasDefaultValue(0);
+
+        // Kategori/etiket.
+        builder.Property(x => x.Category)
+            .IsRequired(false)
+            .HasMaxLength(100);
     }
 }
