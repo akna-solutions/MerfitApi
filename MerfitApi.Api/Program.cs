@@ -6,6 +6,7 @@ using MerfitApi.Business.Interfaces.Services;
 using MerfitApi.Business.Interfaces.Services.Admin;
 using MerfitApi.Business.Services.Auth;
 using MerfitApi.Business.Services.Admin;
+using MerfitApi.Business.Services.Admin.Store;
 using MerfitApi.Business.Services.Admin.Notifications;
 using MerfitApi.Business.Services.TokenService;
 using MerfitApi.Domain.Entities.Enums;
@@ -113,6 +114,10 @@ builder.Services.AddScoped<IAdminSupportTicketService, AdminSupportTicketService
 builder.Services.AddScoped<IAdminFaqService, AdminFaqService>();
 builder.Services.AddScoped<IAdminContentService, AdminContentService>();
 builder.Services.AddScoped<IAdminCampaignService, AdminCampaignService>();
+builder.Services.AddScoped<IAdminStoreCategoryService, AdminStoreCategoryService>();
+builder.Services.AddScoped<IAdminProductService, AdminProductService>();
+builder.Services.AddScoped<IAdminStoreCampaignService, AdminStoreCampaignService>();
+builder.Services.AddScoped<IAdminStoreOrderService, AdminStoreOrderService>();
 builder.Services.AddScoped<IAdminLanguageService, AdminLanguageService>();
 builder.Services.AddScoped<IAdminTranslationService, AdminTranslationService>();
 builder.Services.AddScoped<IAdminLegalService, AdminLegalService>();
