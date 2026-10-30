@@ -111,6 +111,25 @@ public class NotificationCampaignServiceTests
     }
 
     [Fact]
+    public async Task Cancel_CancelsQueuedDispatchesImmediately_AndLeavesProcessedOnesUntouched()
+    {
+        var campaign = _data.Campaign(NotificationAudienceSegment.AllUsers, NotificationCampaignStatus.Dispatching);
+        var pending = AddDispatch(campaign.Id, 1, NotificationDispatchStatus.Pending, null);
+        var sent = AddDispatch(campaign.Id, 2, NotificationDispatchStatus.Sent, null);
+        var otherCampaign = _data.Campaign(NotificationAudienceSegment.AllUsers, NotificationCampaignStatus.Dispatching);
+        var otherPending = AddDispatch(otherCampaign.Id, 3, NotificationDispatchStatus.Pending, null);
+
+        await _data.Campaigns.CancelAsync(campaign.Id, 1, null, null);
+
+        Assert.Equal(NotificationDispatchStatus.Cancelled, pending.Status);
+        Assert.Equal("CampaignCancelled", pending.StatusReason);
+        Assert.NotNull(pending.ProcessedAtUtc);
+        Assert.Equal(NotificationDispatchStatus.Sent, sent.Status);
+        Assert.Equal(NotificationDispatchStatus.Pending, otherPending.Status);
+        Assert.Equal(0, (await _data.Campaigns.GetStatsAsync(campaign.Id)).QueuedCount);
+    }
+
+    [Fact]
     public async Task RetryFailed_RequeuesOnlyRetryableFailures_AndReopensCompletedCampaign()
     {
         var user = _data.User();
