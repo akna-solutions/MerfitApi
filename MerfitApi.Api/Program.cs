@@ -1,4 +1,5 @@
 using MerfitApi.Api.BackgroundJobs;
+using MerfitApi.Api.Json;
 using MerfitApi.Business.Common;
 using MerfitApi.Business.Common.Notifications;
 using MerfitApi.Business.Interfaces;
@@ -23,7 +24,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    // Enum'lar isteklerde ad veya sayi olarak kabul edilir; yanitlarda sayi olarak kalir.
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new LenientEnumConverterFactory()));
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
