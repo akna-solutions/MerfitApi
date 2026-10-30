@@ -25,6 +25,7 @@ public class AdminUserService : IAdminUserService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuditLogService _auditLogService;
+    private readonly IUserDataPurger _userDataPurger;
 
     private static readonly IReadOnlyDictionary<string, Expression<Func<ApplicationUser, object?>>> UserSortMap =
         new Dictionary<string, Expression<Func<ApplicationUser, object?>>>(StringComparer.OrdinalIgnoreCase)
@@ -35,9 +36,10 @@ public class AdminUserService : IAdminUserService
             ["isActive"] = x => x.IsActive,
         };
 
-    public AdminUserService(IUnitOfWork unitOfWork, IAuditLogService auditLogService)
+    public AdminUserService(IUnitOfWork unitOfWork, IAuditLogService auditLogService, IUserDataPurger userDataPurger)
     {
         _unitOfWork = unitOfWork;
+        _userDataPurger = userDataPurger;
         _auditLogService = auditLogService;
     }
 
@@ -308,6 +310,36 @@ public class AdminUserService : IAdminUserService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         await _auditLogService.LogAsync(adminUserId, "USER_RESTORED", nameof(ApplicationUser), userId, ipAddress, userAgent, cancellationToken: cancellationToken);
+    }
+
+    public async Task PurgeAsync(long userId, AdminPurgeUserRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default)
+    {
+        var user = await GetUserOrThrowAsync(userId, cancellationToken);
+
+        if (!string.Equals(request.ConfirmEmail.Trim(), user.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new AppValidationException(nameof(request.ConfirmEmail), "Onay e-posta adresi silinecek kullanicinin e-postasiyla eslesmiyor.");
+        }
+
+        if (adminUserId == userId)
+        {
+            throw new ForbiddenException("Kendi hesabinizi kalici olarak silemezsiniz.");
+        }
+
+        if (user.Role != UserRole.User)
+        {
+            var admin = adminUserId is null ? null : await _unitOfWork.Repository<ApplicationUser>().GetByIdAsync(adminUserId.Value, cancellationToken);
+            if (admin?.Role != UserRole.SuperAdmin)
+            {
+                throw new ForbiddenException("Admin rolundeki hesaplari yalnizca SuperAdmin kalici olarak silebilir.");
+            }
+        }
+
+        var snapshot = new { user.Email, user.UserName, Role = user.Role.ToString(), user.CreatedAt, user.DeletedAt, request.Reason };
+
+        await _userDataPurger.PurgeAsync(userId, cancellationToken);
+
+        await _auditLogService.LogAsync(adminUserId, "USER_PURGED", nameof(ApplicationUser), userId, ipAddress, userAgent, oldValue: snapshot, cancellationToken: cancellationToken);
     }
 
     public async Task<AdminUserProfileDto> GetProfileAsync(long userId, CancellationToken cancellationToken = default)

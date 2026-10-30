@@ -66,6 +66,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Repository / Unit of Work
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IUserDataPurger, UserDataPurger>();
 
 // Auth
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
@@ -78,6 +79,7 @@ builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 // Admin API - is servisleri (her yeni modul buraya eklenir; bkz. madde 51 uygulama sirasi)
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
+builder.Services.AddScoped<IAdminAuthService, AdminAuthService>();
 builder.Services.AddScoped<IAdminMuscleGroupService, AdminMuscleGroupService>();
 builder.Services.AddScoped<IAdminEquipmentService, AdminEquipmentService>();
 builder.Services.AddScoped<IAdminWorkoutCategoryService, AdminWorkoutCategoryService>();

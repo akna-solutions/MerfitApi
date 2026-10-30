@@ -4,6 +4,7 @@ using MerfitApi.Business.Services.Admin;
 using MerfitApi.Business.Tests.TestHelpers;
 using MerfitApi.Domain.Entities;
 using MerfitApi.Domain.Exceptions;
+using MerfitApi.Domain.Interfaces;
 using Moq;
 using Xunit;
 
@@ -17,7 +18,7 @@ public class AdminUserEmailConfirmationTests
 
     public AdminUserEmailConfirmationTests()
     {
-        _service = new AdminUserService(_db.Object, _audit.Object);
+        _service = new AdminUserService(_db.Object, _audit.Object, Mock.Of<IUserDataPurger>());
     }
 
     private ApplicationUser AddUser(bool emailConfirmed)

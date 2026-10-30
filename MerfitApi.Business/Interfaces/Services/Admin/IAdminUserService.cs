@@ -21,6 +21,12 @@ public interface IAdminUserService
 
     Task RestoreAsync(long userId, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Kullaniciyi ve ona bagli tum verileri kalici olarak siler (geri alinamaz). Admin kendini silemez;
+    /// Admin/SuperAdmin rolundeki bir hesabi yalnizca SuperAdmin silebilir.
+    /// </summary>
+    Task PurgeAsync(long userId, AdminPurgeUserRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
+
     Task<AdminUserProfileDto> GetProfileAsync(long userId, CancellationToken cancellationToken = default);
 
     Task<PagedResult<AdminUserSubscriptionListItemDto>> GetSubscriptionsAsync(long userId, PagedRequest request, CancellationToken cancellationToken = default);

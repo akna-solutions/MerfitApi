@@ -8,7 +8,7 @@ namespace MerfitApi.Api.Controllers.Admin;
 
 /// <summary>
 /// Admin panelinden kullanici yonetimi uc noktalari (madde 6). Kullanicinin kendisiyle ilgili
-/// mutasyonlar (durum degistirme, soft-delete/restore) audit log'a yazilir; alt kaynaklar
+/// mutasyonlar (durum degistirme, soft-delete/restore, kalici silme) audit log'a yazilir; alt kaynaklar
 /// (workout, meal, score, device vb.) salt-okunurdur.
 /// </summary>
 [Route("api/admin/users")]
@@ -64,6 +64,18 @@ public class AdminUserController : AdminControllerBase
     public async Task<ActionResult<ApiResponse>> Restore(long userId, CancellationToken cancellationToken)
     {
         await _userService.RestoreAsync(userId, CurrentAdminId, ClientIp, UserAgent, cancellationToken);
+        return SuccessResponse();
+    }
+
+    /// <summary>
+    /// Kullaniciyi ve ona bagli tum verileri (antrenman, beslenme, siparis, abonelik vb.) kalici olarak
+    /// siler; geri alinamaz. Govdedeki confirmEmail kullanicinin e-postasiyla eslesmelidir. Silinen
+    /// e-posta adresi ile yeniden kayit olunabilir.
+    /// </summary>
+    [HttpPost("{userId:long}/purge")]
+    public async Task<ActionResult<ApiResponse>> Purge(long userId, [FromBody] AdminPurgeUserRequest request, CancellationToken cancellationToken)
+    {
+        await _userService.PurgeAsync(userId, request, CurrentAdminId, ClientIp, UserAgent, cancellationToken);
         return SuccessResponse();
     }
 
