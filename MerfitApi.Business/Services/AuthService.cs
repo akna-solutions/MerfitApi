@@ -20,6 +20,9 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly JwtSettings _jwtSettings;
 
+    /// <summary>Rotasyondan hemen sonra eski token'in (paralel istek/sekme) tekrar gelmesine tolerans suresi.</summary>
+    private static readonly TimeSpan RefreshReuseGracePeriod = TimeSpan.FromSeconds(30);
+
     public AuthService(IUnitOfWork unitOfWork, ITokenService tokenService, IOptions<JwtSettings> jwtSettings)
     {
         _unitOfWork = unitOfWork;
@@ -196,9 +199,15 @@ public class AuthService : IAuthService
 
         var now = DateTime.UtcNow;
 
-        // Kullanilmis/iptal edilmis bir token'in tekrar gelmesi calinmis olabilecegini gosterir: tum oturumlari kapat.
         if (current.IsRevoked || current.IsUsed)
         {
+            // Ayni token'i birkac saniye arayla gonderen ikinci sekme/istek: hirsizlik degil, sadece reddet.
+            if (current.IsUsed && current.RevokedAt > now.Add(-RefreshReuseGracePeriod))
+            {
+                throw new UnauthorizedException("Oturum yenilenemedi. Lutfen tekrar giris yapin.");
+            }
+
+            // Kullanilmis/iptal edilmis bir token'in daha sonra tekrar gelmesi calinmis olabilecegini gosterir: tum oturumlari kapat.
             var activeTokens = await tokenRepo.GetQueryable(asNoTracking: false)
                 .Where(t => t.UserId == current.UserId && !t.IsRevoked)
                 .ToListAsync();

@@ -54,9 +54,21 @@ public class AuthRefreshTests
     }
 
     [Fact]
-    public async Task Reusing_a_rotated_token_revokes_every_session_of_the_user()
+    public async Task Reusing_a_just_rotated_token_is_rejected_without_ending_other_sessions()
     {
         await Refresh("valid");
+
+        await Assert.ThrowsAsync<UnauthorizedException>(() => Refresh("valid"));
+
+        Assert.False(Token("new-1").IsRevoked);
+        Assert.False(Token("other-device").IsRevoked);
+    }
+
+    [Fact]
+    public async Task Reusing_an_old_rotated_token_revokes_every_session_of_the_user()
+    {
+        await Refresh("valid");
+        Token("valid").RevokedAt = DateTime.UtcNow.AddMinutes(-5);
 
         await Assert.ThrowsAsync<UnauthorizedException>(() => Refresh("valid"));
 
