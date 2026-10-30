@@ -44,4 +44,17 @@ public class AuthController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>
+    /// Refresh token ile yeni bir access/refresh token cifti alir. Gonderilen refresh token tek kullanimliktir;
+    /// yanittaki yeni refresh token saklanmalidir. Admin paneli access token suresi doldugunda bunu sessizce cagirir.
+    /// </summary>
+    [HttpPost("refresh")]
+    public async Task<ActionResult<AuthResponse>> Refresh([FromBody] RefreshTokenRequest request)
+    {
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var result = await _authService.RefreshAsync(request, ipAddress);
+
+        return Ok(result);
+    }
 }

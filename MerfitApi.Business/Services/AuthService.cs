@@ -5,6 +5,7 @@ using MerfitApi.Domain.Entities;
 using MerfitApi.Domain.Entities.Enums;
 using MerfitApi.Domain.Exceptions;
 using MerfitApi.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace MerfitApi.Business.Services.Auth;
@@ -172,6 +173,81 @@ public class AuthService : IAuthService
 
         await _unitOfWork.Repository<UserRefreshToken>().AddAsync(refreshToken);
         await _unitOfWork.SaveChangesAsync();
+
+        return new AuthResponse
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            Name = profile is not null ? $"{profile.FirstName} {profile.LastName}".Trim() : string.Empty,
+            AccessToken = accessToken,
+            RefreshToken = refreshTokenValue,
+            AccessTokenExpiresAt = expiresAt,
+        };
+    }
+
+    public async Task<AuthResponse> RefreshAsync(RefreshTokenRequest request, string? ipAddress)
+    {
+        var tokenRepo = _unitOfWork.Repository<UserRefreshToken>();
+        var current = await tokenRepo.FirstOrDefaultAsync(t => t.Token == request.RefreshToken);
+        if (current is null)
+        {
+            throw new UnauthorizedException("Oturum yenilenemedi. Lutfen tekrar giris yapin.");
+        }
+
+        var now = DateTime.UtcNow;
+
+        // Kullanilmis/iptal edilmis bir token'in tekrar gelmesi calinmis olabilecegini gosterir: tum oturumlari kapat.
+        if (current.IsRevoked || current.IsUsed)
+        {
+            var activeTokens = await tokenRepo.GetQueryable(asNoTracking: false)
+                .Where(t => t.UserId == current.UserId && !t.IsRevoked)
+                .ToListAsync();
+            foreach (var token in activeTokens)
+            {
+                token.IsRevoked = true;
+                token.RevokedAt = now;
+                token.RevokedByIp = ipAddress;
+                tokenRepo.Update(token);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+            throw new UnauthorizedException("Oturum yenilenemedi. Lutfen tekrar giris yapin.");
+        }
+
+        if (current.ExpiresAt <= now)
+        {
+            throw new UnauthorizedException("Oturumun suresi doldu. Lutfen tekrar giris yapin.");
+        }
+
+        var user = await _unitOfWork.Repository<ApplicationUser>().GetByIdAsync(current.UserId);
+        if (user is null || !user.IsActive || user.DeletedAt != null)
+        {
+            throw new UnauthorizedException("Hesabiniz aktif degil.");
+        }
+
+        var (accessToken, expiresAt) = _tokenService.GenerateAccessToken(user);
+        var refreshTokenValue = _tokenService.GenerateRefreshToken();
+
+        current.IsUsed = true;
+        current.IsRevoked = true;
+        current.RevokedAt = now;
+        current.RevokedByIp = ipAddress;
+        current.ReplacementToken = refreshTokenValue;
+        tokenRepo.Update(current);
+
+        await tokenRepo.AddAsync(new UserRefreshToken
+        {
+            UserId = user.Id,
+            Token = refreshTokenValue,
+            ExpiresAt = now.AddDays(_jwtSettings.RefreshTokenExpirationDays),
+            CreatedByIp = ipAddress,
+            IsRevoked = false,
+            IsUsed = false,
+            CreatedAt = now,
+        });
+        await _unitOfWork.SaveChangesAsync();
+
+        var profile = await _unitOfWork.Repository<UserProfile>().FirstOrDefaultAsync(p => p.UserId == user.Id);
 
         return new AuthResponse
         {

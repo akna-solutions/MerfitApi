@@ -19,4 +19,10 @@ public interface IAuthService
     /// </summary>
     /// <exception cref="Domain.Exceptions.UnauthorizedException">Bilgiler hatali veya hesap pasifse firlatilir.</exception>
     Task<AuthResponse> LoginAsync(LoginRequest request, string? ipAddress);
+
+    /// <summary>
+    /// Gecerli bir refresh token'i yenisiyle degistirir (rotasyon) ve yeni bir access/refresh token cifti doner.
+    /// Daha once kullanilmis bir token tekrar gelirse token calinmis sayilir ve kullanicinin tum refresh token'lari iptal edilir.
+    /// </summary>
+    Task<AuthResponse> RefreshAsync(RefreshTokenRequest request, string? ipAddress);
 }
