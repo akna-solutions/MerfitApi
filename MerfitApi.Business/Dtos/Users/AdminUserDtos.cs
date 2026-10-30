@@ -121,6 +121,21 @@ public class AdminUpdateUserEmailConfirmationRequest
     public string? Reason { get; set; }
 }
 
+/// <summary>
+/// POST /api/admin/users/{id}/purge govdesi. Kalici silme geri alinamaz oldugundan admin, silinecek
+/// kullanicinin e-posta adresini yeniden yazarak onaylar; adres eslesmezse islem reddedilir.
+/// </summary>
+public class AdminPurgeUserRequest
+{
+    [Required(ErrorMessage = "Onay icin kullanicinin e-posta adresi zorunludur.")]
+    [StringLength(500)]
+    public string ConfirmEmail { get; set; } = string.Empty;
+
+    /// <summary>Islemin sebebi (audit log'a yazilir, opsiyonel).</summary>
+    [StringLength(500)]
+    public string? Reason { get; set; }
+}
+
 public class AdminUserSubscriptionListItemDto
 {
     public long Id { get; set; }
