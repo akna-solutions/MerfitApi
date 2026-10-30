@@ -269,10 +269,26 @@ public class AdminNotificationCampaignService : IAdminNotificationCampaignServic
         entity.LockedUntilUtc = null;
         entity.UpdatedAt = now;
         entity.UpdatedUser = adminUserId;
+
+        // Kuyrukta bekleyen gonderimler worker'i beklemeden hemen iptal edilir; aksi halde "Kuyrukta" gorunmeye devam ederler.
+        var pendingDispatches = await _unitOfWork.Repository<NotificationDispatch>().GetQueryable(asNoTracking: false)
+            .Where(x => x.NotificationCampaignId == id && x.Status == NotificationDispatchStatus.Pending)
+            .ToListAsync(cancellationToken);
+        foreach (var dispatch in pendingDispatches)
+        {
+            dispatch.Status = NotificationDispatchStatus.Cancelled;
+            dispatch.StatusReason = "CampaignCancelled";
+            dispatch.ProcessedAtUtc = now;
+            dispatch.LockToken = null;
+            dispatch.LockedUntilUtc = null;
+            dispatch.UpdatedAt = now;
+            dispatch.UpdatedUser = adminUserId;
+        }
+
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         await _auditLogService.LogAsync(adminUserId, "NOTIFICATION_CAMPAIGN_CANCELLED", nameof(NotificationCampaign), id, ipAddress, userAgent,
-            oldValue: new { Status = oldStatus.ToString() }, newValue: new { Status = entity.Status.ToString() }, cancellationToken: cancellationToken);
+            oldValue: new { Status = oldStatus.ToString() }, newValue: new { Status = entity.Status.ToString(), CancelledDispatchCount = pendingDispatches.Count }, cancellationToken: cancellationToken);
 
         return await GetByIdAsync(id, cancellationToken);
     }
