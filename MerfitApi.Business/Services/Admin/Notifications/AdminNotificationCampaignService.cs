@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using MerfitApi.Business.Common.Notifications;
 using MerfitApi.Business.Common.Pagination;
 using MerfitApi.Business.Dtos.Admin.Notifications;
@@ -56,6 +56,11 @@ public class AdminNotificationCampaignService : IAdminNotificationCampaignServic
     {
         var query = _unitOfWork.Repository<NotificationCampaign>().GetQueryable();
         if (request.Status.HasValue) query = query.Where(x => x.Status == request.Status.Value);
+        if (request.App.HasValue)
+        {
+            var appTypes = NotificationApps.TypesOf(request.App.Value).ToList();
+            query = query.Where(x => appTypes.Contains(x.Type));
+        }
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             var search = request.Search.Trim().ToLower();
@@ -431,6 +436,7 @@ public class AdminNotificationCampaignService : IAdminNotificationCampaignServic
         }
 
         var normalizedData = NotificationNavigation.Normalize(dataJson, out var error);
+        error ??= NotificationNavigation.ValidateApp(normalizedData, NotificationApps.Of(request.Type));
         if (error is not null)
         {
             throw new AppValidationException(nameof(request.DataJson), error);
@@ -477,6 +483,7 @@ public class AdminNotificationCampaignService : IAdminNotificationCampaignServic
         dto.Id = x.Id;
         dto.Name = x.Name;
         dto.Type = x.Type.ToString();
+        dto.App = NotificationApps.Of(x.Type).ToString();
         dto.Status = x.Status.ToString();
         dto.Segment = x.Segment.ToString();
         dto.Title = x.Title;

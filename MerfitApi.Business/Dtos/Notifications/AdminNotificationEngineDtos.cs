@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using MerfitApi.Business.Common.Pagination;
 using MerfitApi.Domain.Entities.Enums;
 
@@ -13,6 +13,8 @@ public class AdminNotificationTemplateDto
     public long Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
+    /// <summary>"MbFit" | "MbShop".</summary>
+    public string App { get; set; } = "MbFit";
     public string TitleTemplate { get; set; } = string.Empty;
     public string BodyTemplate { get; set; } = string.Empty;
     public string? DataJson { get; set; }
@@ -26,6 +28,7 @@ public class AdminNotificationTemplateDto
 public class AdminNotificationTemplateListRequest : PagedRequest
 {
     public NotificationType? Type { get; set; }
+    public NotificationApp? App { get; set; }
     public bool? IsActive { get; set; }
 }
 
@@ -90,6 +93,12 @@ public class AdminNotificationMetadataDto
     public IReadOnlyList<string> RuleKinds { get; set; } = Array.Empty<string>();
     public IReadOnlyList<string> Segments { get; set; } = Array.Empty<string>();
     public IReadOnlyList<string> Screens { get; set; } = Array.Empty<string>();
+    /// <summary>"MbFit", "MbShop".</summary>
+    public IReadOnlyList<string> Apps { get; set; } = Array.Empty<string>();
+    /// <summary>Her bildirim turunun ait oldugu uygulama.</summary>
+    public IReadOnlyDictionary<string, string> AppByType { get; set; } = new Dictionary<string, string>();
+    /// <summary>Uygulamaya gore secilebilecek hedef ekranlar.</summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> ScreensByApp { get; set; } = new Dictionary<string, IReadOnlyList<string>>();
     public IReadOnlyDictionary<string, IReadOnlyList<string>> PlaceholdersByType { get; set; } = new Dictionary<string, IReadOnlyList<string>>();
     public int LargeAudienceThreshold { get; set; }
     public int MaxSelectedUsers { get; set; }
@@ -205,6 +214,7 @@ public class AdminNotificationCampaignListItemDto
     public long Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
+    public string App { get; set; } = "MbFit";
     public string Status { get; set; } = string.Empty;
     public string Segment { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
@@ -231,6 +241,7 @@ public class AdminNotificationCampaignDetailDto : AdminNotificationCampaignListI
 public class AdminNotificationCampaignListRequest : PagedRequest
 {
     public NotificationCampaignStatus? Status { get; set; }
+    public NotificationApp? App { get; set; }
 }
 
 public class AdminUpsertNotificationCampaignRequest
@@ -291,6 +302,7 @@ public class AdminNotificationDispatchListRequest : PagedRequest
 {
     public NotificationDispatchStatus? Status { get; set; }
     public NotificationDispatchSource? Source { get; set; }
+    public NotificationApp? App { get; set; }
     public long? CampaignId { get; set; }
     public long? RuleId { get; set; }
     public long? LeaderboardPeriodId { get; set; }
@@ -305,6 +317,7 @@ public class AdminNotificationDispatchDto
     public long UserId { get; set; }
     public string UserEmail { get; set; } = "-";
     public string Type { get; set; } = string.Empty;
+    public string App { get; set; } = "MbFit";
     public string Source { get; set; } = string.Empty;
     public long? NotificationRuleId { get; set; }
     public long? NotificationCampaignId { get; set; }

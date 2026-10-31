@@ -1,4 +1,4 @@
-using MerfitApi.Business.Dtos.Admin.Notifications;
+﻿using MerfitApi.Business.Dtos.Admin.Notifications;
 using MerfitApi.Domain.Entities;
 using MerfitApi.Domain.Entities.Enums;
 using MerfitApi.Domain.Exceptions;
@@ -30,6 +30,29 @@ public class NotificationTemplateAndRuleTests
         var created = await _data.Templates.CreateAsync(
             TemplateRequest(NotificationType.NutritionReminder, "{firstName}", "{mealName} kaydını eklemeyi unutma", "{\"screen\":\"nutrition\"}"), 1, null, null);
         Assert.Equal("NutritionReminder", created.Type);
+    }
+
+    [Fact]
+    public async Task ShopTemplates_AreSeparatedByApp_InListAndMetadata()
+    {
+        var shop = await _data.Templates.CreateAsync(
+            TemplateRequest(NotificationType.StorePromotion, "{firstName}, indirim başladı", "Protein tozlarında %20 indirim.", "{\"screen\":\"store\"}"), 1, null, null);
+        var fit = await _data.Templates.CreateAsync(TemplateRequest(NotificationType.Announcement, "Duyuru", "Yeni özellik."), 1, null, null);
+        Assert.Equal("MbShop", shop.App);
+        Assert.Equal("MbFit", fit.App);
+
+        await Assert.ThrowsAsync<AppValidationException>(() => _data.Templates.CreateAsync(
+            TemplateRequest(NotificationType.StorePromotion, "Başlık", "İçerik", "{\"screen\":\"nutrition\"}"), 1, null, null));
+
+        var shopList = await _data.Templates.GetListAsync(new AdminNotificationTemplateListRequest { App = NotificationApp.MbShop });
+        Assert.Equal(new[] { shop.Id }, shopList.Items.Select(t => t.Id));
+
+        var metadata = _data.Templates.GetMetadata();
+        Assert.Equal("MbShop", metadata.AppByType["StoreOrderUpdate"]);
+        Assert.Equal("MbFit", metadata.AppByType["Announcement"]);
+        Assert.Contains("StorePromotion", metadata.CampaignTypes);
+        Assert.Contains("storeOrder", metadata.ScreensByApp["MbShop"]);
+        Assert.DoesNotContain("storeOrder", metadata.ScreensByApp["MbFit"]);
     }
 
     [Theory]

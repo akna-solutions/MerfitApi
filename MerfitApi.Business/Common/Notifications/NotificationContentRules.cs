@@ -1,4 +1,4 @@
-using MerfitApi.Domain.Entities.Enums;
+﻿using MerfitApi.Domain.Entities.Enums;
 
 namespace MerfitApi.Business.Common.Notifications;
 
@@ -12,6 +12,8 @@ public static class NotificationContentRules
     public static readonly IReadOnlySet<NotificationType> CampaignTypes = new HashSet<NotificationType>
     {
         NotificationType.Announcement, NotificationType.Marketing, NotificationType.System,
+        // MB Shop kampanyalari: mobilde MB Shop gelen kutusuna ve ayri Android kanalina duser.
+        NotificationType.StorePromotion,
     };
 
     public static NotificationType TypeFor(NotificationRuleKind kind) => kind switch

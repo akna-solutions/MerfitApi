@@ -1,4 +1,4 @@
-using MerfitApi.Business.Common.Pagination;
+﻿using MerfitApi.Business.Common.Pagination;
 using MerfitApi.Business.Dtos.Admin.Notifications;
 using MerfitApi.Business.Interfaces.Services.Admin;
 using MerfitApi.Domain.Entities;
@@ -33,6 +33,11 @@ public class AdminNotificationService : IAdminNotificationService
         if (request.UserId.HasValue) query = query.Where(x => x.UserId == request.UserId.Value);
         if (request.IsRead.HasValue) query = query.Where(x => x.IsRead == request.IsRead.Value);
         if (request.Type.HasValue) query = query.Where(x => x.Type == request.Type.Value);
+        if (request.App.HasValue)
+        {
+            var appTypes = MerfitApi.Domain.Entities.Enums.NotificationApps.TypesOf(request.App.Value).ToList();
+            query = query.Where(x => appTypes.Contains(x.Type));
+        }
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             var search = request.Search.Trim().ToLower();
@@ -69,6 +74,7 @@ public class AdminNotificationService : IAdminNotificationService
             UserId = x.UserId,
             UserEmail = x.UserEmail ?? "-",
             Type = x.Type.ToString(),
+            App = MerfitApi.Domain.Entities.Enums.NotificationApps.Of(x.Type).ToString(),
             Title = x.Title,
             Body = x.Body,
             ImageUrl = x.ImageUrl,
@@ -115,6 +121,7 @@ public class AdminNotificationService : IAdminNotificationService
         UserId = entity.UserId,
         UserEmail = userEmail,
         Type = entity.Type.ToString(),
+        App = MerfitApi.Domain.Entities.Enums.NotificationApps.Of(entity.Type).ToString(),
         Title = entity.Title,
         Body = entity.Body,
         ImageUrl = entity.ImageUrl,
