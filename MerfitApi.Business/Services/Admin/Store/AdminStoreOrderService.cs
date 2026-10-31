@@ -1,4 +1,5 @@
-using System.Text.Json;
+﻿using System.Text.Json;
+using MerfitApi.Business.Common.Notifications;
 using MerfitApi.Business.Common.Pagination;
 using MerfitApi.Business.Dtos.Admin.Store;
 using MerfitApi.Business.Interfaces.Services.Admin;
@@ -209,6 +210,7 @@ public class AdminStoreOrderService : IAdminStoreOrderService
             order.UpdatedUser = adminUserId;
             await AddHistoryAsync(order, adminUserId, note, cancellationToken);
             await SaveOrderAsync(cancellationToken);
+            await EnqueueNotificationAsync(StoreOrderNotifications.ForStatusChange(order, UtcNow), cancellationToken);
             if (target == StoreOrderStatus.Cancelled)
             {
                 await ReleaseStockAsync(order, cancellationToken);
@@ -282,6 +284,7 @@ public class AdminStoreOrderService : IAdminStoreOrderService
             order.UpdatedUser = adminUserId;
             await AddHistoryAsync(order, adminUserId, note, cancellationToken);
             await SaveOrderAsync(cancellationToken);
+            await EnqueueNotificationAsync(StoreOrderNotifications.ForPaymentChange(order, cancelsOrder, now), cancellationToken);
             if (cancelsOrder)
             {
                 await ReleaseStockAsync(order, cancellationToken);
@@ -325,6 +328,22 @@ public class AdminStoreOrderService : IAdminStoreOrderService
             CreatedAt = UtcNow,
             CreatedUser = adminUserId,
         }, cancellationToken);
+
+    /// <summary>
+    /// Musteriye MB Shop bildirimi (siparis durumu) siparis degisikligiyle ayni transaction'da kuyruga yazilir:
+    /// degisiklik geri alinirsa bildirim de gitmez. Siparis satiri bu noktada kilitli ve durumu degismis oldugu icin
+    /// eszamanli bir istek ayni olayi (ayni DedupeKey) yazamaz; o istek siparis kaydinda 409 alir.
+    /// </summary>
+    private async Task EnqueueNotificationAsync(NotificationDispatch? dispatch, CancellationToken cancellationToken)
+    {
+        if (dispatch is null)
+        {
+            return;
+        }
+
+        await _unitOfWork.Repository<NotificationDispatch>().AddAsync(dispatch, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
 
     /// <summary>Siparisteki urunlerin stogunu geri ekler (silinmis urunler atlanir).</summary>
     private async Task ReleaseStockAsync(StoreOrder order, CancellationToken cancellationToken)

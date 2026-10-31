@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using MerfitApi.Business.Common.Notifications;
 using MerfitApi.Business.Common.Pagination;
 using MerfitApi.Business.Dtos.Admin.Notifications;
@@ -41,6 +41,11 @@ public class AdminNotificationTemplateService : IAdminNotificationTemplateServic
     {
         var query = _unitOfWork.Repository<NotificationTemplate>().GetQueryable();
         if (request.Type.HasValue) query = query.Where(x => x.Type == request.Type.Value);
+        if (request.App.HasValue)
+        {
+            var appTypes = NotificationApps.TypesOf(request.App.Value).ToList();
+            query = query.Where(x => appTypes.Contains(x.Type));
+        }
         if (request.IsActive.HasValue) query = query.Where(x => x.IsActive == request.IsActive.Value);
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
@@ -200,6 +205,13 @@ public class AdminNotificationTemplateService : IAdminNotificationTemplateServic
         RuleKinds = Enum.GetNames<NotificationRuleKind>(),
         Segments = Enum.GetNames<NotificationAudienceSegment>(),
         Screens = NotificationNavigation.AllowedScreens.OrderBy(x => x).ToList(),
+        Apps = Enum.GetNames<NotificationApp>(),
+        AppByType = Enum.GetValues<NotificationType>().ToDictionary(t => t.ToString(), t => NotificationApps.Of(t).ToString()),
+        ScreensByApp = new Dictionary<string, IReadOnlyList<string>>
+        {
+            [nameof(NotificationApp.MbFit)] = NotificationNavigation.AllowedScreens.Where(s => !NotificationNavigation.ShopScreens.Contains(s)).OrderBy(x => x).ToList(),
+            [nameof(NotificationApp.MbShop)] = NotificationNavigation.ShopScreens.OrderBy(x => x).ToList(),
+        },
         PlaceholdersByType = Enum.GetValues<NotificationType>().ToDictionary(
             t => t.ToString(),
             t => (IReadOnlyList<string>)NotificationContentRules.AllowedPlaceholders(t).OrderBy(x => x).ToList()),
@@ -225,6 +237,7 @@ public class AdminNotificationTemplateService : IAdminNotificationTemplateServic
         }
 
         var dataJson = NotificationNavigation.Normalize(request.DataJson, out var error);
+        error ??= NotificationNavigation.ValidateApp(dataJson, NotificationApps.Of(request.Type));
         if (error is not null)
         {
             throw new AppValidationException(nameof(request.DataJson), error);
@@ -294,6 +307,7 @@ public class AdminNotificationTemplateService : IAdminNotificationTemplateServic
         Id = entity.Id,
         Name = entity.Name,
         Type = entity.Type.ToString(),
+        App = NotificationApps.Of(entity.Type).ToString(),
         TitleTemplate = entity.TitleTemplate,
         BodyTemplate = entity.BodyTemplate,
         DataJson = entity.DataJson,

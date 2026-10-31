@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using MerfitApi.Business.Common.Pagination;
 using MerfitApi.Business.Dtos.Admin.Notifications;
 using MerfitApi.Business.Interfaces.Services.Admin;
@@ -42,6 +42,11 @@ public class AdminNotificationDispatchService : IAdminNotificationDispatchServic
         var query = _unitOfWork.Repository<NotificationDispatch>().GetQueryable();
         if (request.Status.HasValue) query = query.Where(x => x.Status == request.Status.Value);
         if (request.Source.HasValue) query = query.Where(x => x.Source == request.Source.Value);
+        if (request.App.HasValue)
+        {
+            var appTypes = NotificationApps.TypesOf(request.App.Value).ToList();
+            query = query.Where(x => appTypes.Contains(x.Type));
+        }
         if (request.CampaignId.HasValue) query = query.Where(x => x.NotificationCampaignId == request.CampaignId.Value);
         if (request.RuleId.HasValue) query = query.Where(x => x.NotificationRuleId == request.RuleId.Value);
         if (request.LeaderboardPeriodId.HasValue) query = query.Where(x => x.LeaderboardPeriodId == request.LeaderboardPeriodId.Value);
@@ -190,6 +195,7 @@ public class AdminNotificationDispatchService : IAdminNotificationDispatchServic
         dto.UserId = x.UserId;
         dto.UserEmail = email ?? "-";
         dto.Type = x.Type.ToString();
+        dto.App = NotificationApps.Of(x.Type).ToString();
         dto.Source = x.Source.ToString();
         dto.NotificationRuleId = x.NotificationRuleId;
         dto.NotificationCampaignId = x.NotificationCampaignId;

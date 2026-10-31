@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace MerfitApi.Business.Common.Notifications;
@@ -15,7 +15,46 @@ public static class NotificationNavigation
     public static readonly IReadOnlySet<string> AllowedScreens = new HashSet<string>(StringComparer.Ordinal)
     {
         "dashboard", "nutrition", "workouts", "workoutPlan", "progress", "leaderboard", "notifications", "profile", "subscription",
+        // MB Shop ekranlari (storeOrder: orderId, storeProduct: productId parametresi alir).
+        "store", "storeOrders", "storeOrder", "storeProduct", "storeNotifications",
     };
+
+    /// <summary>MB Shop'a ait ekranlar; MB Shop bildirimleri yalnizca bunlara, MB Fit bildirimleri yalnizca digerlerine yonlendirebilir.</summary>
+    public static readonly IReadOnlySet<string> ShopScreens = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "store", "storeOrders", "storeOrder", "storeProduct", "storeNotifications",
+    };
+
+    /// <summary>
+    /// Normalize edilmis yonlendirme verisinin hedef ekrani bildirimin uygulamasina (MB Fit / MB Shop) ait mi?
+    /// Uygun degilse hata mesaji dondurur. Veri yoksa her zaman uygundur.
+    /// </summary>
+    public static string? ValidateApp(string? normalizedDataJson, MerfitApi.Domain.Entities.Enums.NotificationApp app)
+    {
+        if (normalizedDataJson is null)
+        {
+            return null;
+        }
+
+        var screen = ToDictionary(normalizedDataJson).GetValueOrDefault(ScreenKey);
+        if (screen is null)
+        {
+            return null;
+        }
+
+        var isShopScreen = ShopScreens.Contains(screen);
+        if (app == MerfitApi.Domain.Entities.Enums.NotificationApp.MbShop && !isShopScreen)
+        {
+            return $"MB Shop bildirimleri yalnizca MB Shop ekranlarina yonlendirebilir: {string.Join(", ", ShopScreens)}.";
+        }
+
+        if (app == MerfitApi.Domain.Entities.Enums.NotificationApp.MbFit && isShopScreen)
+        {
+            return "MB Fit bildirimleri MB Shop ekranlarina yonlendiremez; MB Shop icin 'MB Shop Kampanyasi' turunu secin.";
+        }
+
+        return null;
+    }
 
     private const int MaxParams = 5;
     private const int MaxValueLength = 100;

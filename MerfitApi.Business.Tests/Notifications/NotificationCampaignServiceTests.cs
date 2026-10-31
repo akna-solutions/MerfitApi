@@ -1,4 +1,4 @@
-using MerfitApi.Business.Dtos.Admin.Notifications;
+﻿using MerfitApi.Business.Dtos.Admin.Notifications;
 using MerfitApi.Domain.Entities;
 using MerfitApi.Domain.Entities.Enums;
 using MerfitApi.Domain.Exceptions;
@@ -41,6 +41,32 @@ public class NotificationCampaignServiceTests
         var badPlaceholder = Request(NotificationAudienceSegment.AllUsers);
         badPlaceholder.Body = "{rewardTitle} kazandın";
         await Assert.ThrowsAsync<AppValidationException>(() => _data.Campaigns.CreateAsync(badPlaceholder, 1, null, null));
+    }
+
+    [Fact]
+    public async Task ShopCampaign_MustTargetShopScreens_AndListsSeparatelyByApp()
+    {
+        var shop = Request(NotificationAudienceSegment.AllUsers);
+        shop.Type = NotificationType.StorePromotion;
+        shop.DataJson = "{\"screen\":\"storeProduct\",\"productId\":\"12\"}";
+        var created = await _data.Campaigns.CreateAsync(shop, 1, null, null);
+        Assert.Equal("MbShop", created.App);
+
+        var shopToFitScreen = Request(NotificationAudienceSegment.AllUsers);
+        shopToFitScreen.Type = NotificationType.StorePromotion;
+        await Assert.ThrowsAsync<AppValidationException>(() => _data.Campaigns.CreateAsync(shopToFitScreen, 1, null, null));
+
+        var fitToShopScreen = Request(NotificationAudienceSegment.AllUsers);
+        fitToShopScreen.DataJson = "{\"screen\":\"store\"}";
+        await Assert.ThrowsAsync<AppValidationException>(() => _data.Campaigns.CreateAsync(fitToShopScreen, 1, null, null));
+
+        var fit = await _data.Campaigns.CreateAsync(Request(NotificationAudienceSegment.AllUsers), 1, null, null);
+        Assert.Equal("MbFit", fit.App);
+
+        var shopList = await _data.Campaigns.GetListAsync(new AdminNotificationCampaignListRequest { App = NotificationApp.MbShop });
+        var fitList = await _data.Campaigns.GetListAsync(new AdminNotificationCampaignListRequest { App = NotificationApp.MbFit });
+        Assert.Equal(new[] { created.Id }, shopList.Items.Select(c => c.Id));
+        Assert.Equal(new[] { fit.Id }, fitList.Items.Select(c => c.Id));
     }
 
     [Fact]

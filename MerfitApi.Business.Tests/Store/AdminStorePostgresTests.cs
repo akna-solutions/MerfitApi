@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using MerfitApi.Business.Dtos.Admin.Store;
 using MerfitApi.Business.Interfaces.Services.Admin;
 using MerfitApi.Business.Services.Admin.Store;
@@ -254,6 +254,27 @@ public class AdminStorePostgresTests
         Assert.Equal("Ayşe Yılmaz", delivered.ShippingAddress.RecipientName);
         await Assert.ThrowsAsync<ConflictException>(() => SetStatus(orderId, "Cancelled"));
         Assert.Equal(8, await StockAsync(product.Id));
+
+        // Her gecis musteriye tek bir MB Shop bildirimi (StoreOrderUpdate) kuyruga yazar; reddedilen gecisler yazmaz.
+        var dispatches = await StoreOrderDispatchesAsync(orderId);
+        Assert.Equal(
+            new[] { "status:Preparing", "payment:Paid", "status:Shipped", "status:Delivered" },
+            dispatches.Select(d => d.DedupeKey.Split(':', 3)[2]));
+        Assert.All(dispatches, d =>
+        {
+            Assert.Equal(NotificationType.StoreOrderUpdate, d.Type);
+            Assert.Equal(NotificationDispatchSource.StoreOrder, d.Source);
+            Assert.Equal(NotificationDispatchStatus.Pending, d.Status);
+            Assert.Contains("\"screen\":\"storeOrder\"", d.DataJson);
+            Assert.Contains($"\"orderId\":\"{orderId}\"", d.DataJson);
+        });
+    }
+
+    private static async Task<List<NotificationDispatch>> StoreOrderDispatchesAsync(long orderId)
+    {
+        await using var db = CreateContext();
+        var prefix = $"store-order:{orderId}:";
+        return await db.NotificationDispatches.AsNoTracking().Where(d => d.DedupeKey.StartsWith(prefix)).OrderBy(d => d.Id).ToListAsync();
     }
 
     [PostgresFact]
@@ -282,6 +303,8 @@ public class AdminStorePostgresTests
         Assert.Equal("Cancelled", order.Status);
         Assert.Equal("Cancelled", order.PaymentStatus);
         Assert.NotNull(order.CancelledAt);
+        var dispatch = Assert.Single(await StoreOrderDispatchesAsync(orderId));
+        Assert.Equal("Siparişin iptal edildi", dispatch.Title);
     }
 
     [PostgresFact]
@@ -295,6 +318,8 @@ public class AdminStorePostgresTests
         Assert.Equal("Failed", failed.PaymentStatus);
         Assert.Equal(10, await StockAsync(product.Id));
         await Assert.ThrowsAsync<ConflictException>(() => SetPayment(failedOrder, "Paid"));
+        var failedDispatch = Assert.Single(await StoreOrderDispatchesAsync(failedOrder));
+        Assert.Equal("Ödemen alınamadı", failedDispatch.Title);
 
         var raced = await OrderAsync(product.Id, 1, StorePaymentMethod.BankTransfer);
         var outcomes = await Task.WhenAll(new[] { "Paid", "Failed", "Paid", "Failed" }.Select(status => Task.Run(async () =>
@@ -311,6 +336,7 @@ public class AdminStorePostgresTests
         })));
 
         var winner = Assert.Single(outcomes.OfType<string>());
+        Assert.Single(await StoreOrderDispatchesAsync(raced));
         var order = await Run((uow, audit) => new AdminStoreOrderService(uow, audit).GetByIdAsync(raced));
         Assert.Equal(winner, order.PaymentStatus);
         Assert.Equal(winner == "Failed" ? 10 : 9, await StockAsync(product.Id));
