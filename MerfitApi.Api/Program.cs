@@ -88,6 +88,7 @@ builder.Services.AddScoped<IAdminEquipmentService, AdminEquipmentService>();
 builder.Services.AddScoped<IAdminWorkoutCategoryService, AdminWorkoutCategoryService>();
 builder.Services.AddScoped<IAdminExerciseService, AdminExerciseService>();
 builder.Services.AddScoped<IAdminWorkoutService, AdminWorkoutService>();
+builder.Services.AddScoped<IAdminWorkoutLabService, AdminWorkoutLabService>();
 builder.Services.AddScoped<IAdminWorkoutPlanService, AdminWorkoutPlanService>();
 builder.Services.AddScoped<IAdminFoodService, AdminFoodService>();
 builder.Services.AddScoped<IAdminNutritionService, AdminNutritionService>();

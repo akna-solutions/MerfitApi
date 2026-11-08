@@ -81,3 +81,50 @@ public enum WorkoutAttributeType
     /// </summary>
     CoreStability
 }
+
+/// <summary>
+/// Antrenman Laboratuvari simulasyonunun isleme durumu. Admin API'si kaydi Pending acar; MerfitCustomerApi'deki
+/// WorkoutPlanSimulationBackgroundWorker gercek WorkoutPlanGenerator ile isler (bkz. MerfitCustomerApi).
+/// </summary>
+public enum WorkoutPlanSimulationStatus
+{
+    /// <summary>
+    /// Islenmeyi bekliyor.
+    /// </summary>
+    Pending,
+    /// <summary>
+    /// Isleniyor.
+    /// </summary>
+    Processing,
+    /// <summary>
+    /// Program uretildi.
+    /// </summary>
+    Completed,
+    /// <summary>
+    /// Program uretilemedi.
+    /// </summary>
+    Failed
+}
+
+/// <summary>
+/// Admin'in simulasyonla uretilen program icin verdigi degerlendirme.
+/// </summary>
+public enum WorkoutPlanEvaluationRating
+{
+    /// <summary>
+    /// Cok iyi.
+    /// </summary>
+    VeryGood,
+    /// <summary>
+    /// Iyi.
+    /// </summary>
+    Good,
+    /// <summary>
+    /// Gelistirilmeli.
+    /// </summary>
+    NeedsImprovement,
+    /// <summary>
+    /// Kotu.
+    /// </summary>
+    Poor
+}

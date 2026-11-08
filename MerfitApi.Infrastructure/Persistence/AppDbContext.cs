@@ -132,6 +132,9 @@ public class AppDbContext : DbContext
     /// </summary>
     public DbSet<WorkoutAttributeScore> WorkoutAttributeScores => Set<WorkoutAttributeScore>();
 
+    /// <summary>Antrenman Laboratuvari test kayitlari (sema MerfitCustomerApi'de).</summary>
+    public DbSet<WorkoutPlanSimulation> WorkoutPlanSimulations => Set<WorkoutPlanSimulation>();
+
     /// <summary>
     /// WorkoutExercise kayitlarina erisim saglayan DbSet.
     /// </summary>
@@ -438,6 +441,12 @@ public class AppDbContext : DbContext
         if (Database.IsNpgsql())
         {
             modelBuilder.Entity<PersonalizationJob>()
+                .Property<uint>("xmin")
+                .HasColumnType("xid")
+                .IsRowVersion();
+
+            // Antrenman Laboratuvari kuyrugu: MerfitCustomerApi isleyicisiyle ayni satiri ayni anda guncellememek icin.
+            modelBuilder.Entity<WorkoutPlanSimulation>()
                 .Property<uint>("xmin")
                 .HasColumnType("xid")
                 .IsRowVersion();
