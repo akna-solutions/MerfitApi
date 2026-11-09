@@ -17,12 +17,17 @@ public class AdminWorkoutLabOptionsDto
     public List<AdminWorkoutLabOptionItem> TrainingLocations { get; set; } = new();
     public List<AdminWorkoutLabOptionItem> Genders { get; set; } = new();
     public List<AdminWorkoutLabOptionItem> WeekDays { get; set; } = new();
-    public List<int> TrainingDaysPerWeekOptions { get; set; } = new();
     public List<int> DurationOptions { get; set; } = new();
     public List<AdminWorkoutLabEquipmentDto> Equipment { get; set; } = new();
 
+    /// <summary>
+    /// Haftalik gun sayisini kullanici secmez; algoritma deneyime gore belirler (Yag Kaybi +1, 2-6 arasi).
+    /// Bilgi amaclidir; gercek deger her testin sonucunda (TargetTrainingDays) yazar.
+    /// </summary>
+    public Dictionary<string, int> TargetTrainingDaysByExperience { get; set; } = new();
+    public int LoseWeightExtraTrainingDays { get; set; }
+
     /// <summary>Algoritmanin bos alanlar icin kullandigi varsayilanlar (MerfitCustomerApi appsettings varsayilanlari).</summary>
-    public int DefaultTrainingDaysPerWeek { get; set; }
     public int DefaultWorkoutDurationMin { get; set; }
     public int DurationToleranceMin { get; set; }
 
@@ -74,19 +79,25 @@ public class AdminWorkoutLabProfileInput
 
     public ExperienceLevel? ExperienceLevel { get; set; }
 
-    /// <summary>Home veya Gym (Outdoor da kabul edilir; algoritmada Home gibi ekipman secimiyle calisir).</summary>
+    /// <summary>Home veya Gym (Outdoor da kabul edilir).</summary>
     public TrainingLocation TrainingLocation { get; set; } = TrainingLocation.Home;
 
-    /// <summary>Equipment.Id listesi. Gym'de yok sayilir (mobil uygulamadaki gibi tum ekipmanlar kullanilir).</summary>
+    /// <summary>
+    /// Ekipmanli (true: katalogdaki tum ekipmanlar) / ekipmansiz (false: yalnizca vucut agirligi). Spor salonunda
+    /// her zaman ekipmanlidir. Gonderilmezse eski alanlardan (EquipmentIds/NoEquipment) turetilir.
+    /// </summary>
+    public bool? HasEquipment { get; set; }
+
+    /// <summary>Eski istemciler icin. Yalnizca HasEquipment gonderilmediginde "ekipman var mi" kararinda kullanilir.</summary>
     public List<long> EquipmentIds { get; set; } = new();
 
-    /// <summary>"Hic ekipmanim yok"; isaretliyse ekipman listesi temizlenir.</summary>
+    /// <summary>Eski istemciler icin; bkz. <see cref="EquipmentIds"/>.</summary>
     public bool NoEquipment { get; set; }
 
-    [Range(2, 7)]
+    /// <summary>Eski istemciler icin; yok sayilir. Haftalik gun sayisini algoritma belirler.</summary>
     public int? TrainingDaysPerWeek { get; set; }
 
-    /// <summary>Belirli gunler ("Mon".."Sun"). Doluysa gun sayisi bu listeden turetilir (en az 2).</summary>
+    /// <summary>Musait gunler ("Mon".."Sun"). Bos ise tum hafta musait; doluysa en az 2 gun. Algoritma bu gunler arasindan secer.</summary>
     public List<string> TrainingDays { get; set; } = new();
 
     [Range(5, 240)]
@@ -132,6 +143,7 @@ public class AdminWorkoutLabSimulationListItemDto
     public string Status { get; set; } = string.Empty;
     public string Goal { get; set; } = string.Empty;
     public string ExperienceLevel { get; set; } = string.Empty;
+    /// <summary>Algoritmanin sectigi gun sayisi; test tamamlanana kadar 0.</summary>
     public int TrainingDaysPerWeek { get; set; }
     public int? WorkoutDurationMin { get; set; }
     public string TrainingLocation { get; set; } = string.Empty;

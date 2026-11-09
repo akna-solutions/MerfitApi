@@ -673,6 +673,7 @@ public class AdminUserService : IAdminUserService
         TrainingLocation = profile.TrainingLocation,
         TrainingDaysPerWeek = profile.TrainingDaysPerWeek,
         PreferredTrainingDays = profile.PreferredTrainingDays,
+        HasEquipment = profile.HasEquipment,
         UnitSystem = profile.UnitSystem,
     };
 }

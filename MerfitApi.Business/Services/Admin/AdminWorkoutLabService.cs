@@ -25,7 +25,6 @@ public class AdminWorkoutLabService : IAdminWorkoutLabService
 {
     // MerfitCustomerApi WorkoutPlanGenerationOptions varsayilanlari (bos alanlar icin bilgi amacli gosterilir;
     // gercekte kullanilan degerler her testin sonucunda yazar).
-    public const int DefaultTrainingDaysPerWeek = 3;
     public const int DefaultWorkoutDurationMin = 45;
     public const int DurationToleranceMin = 15;
 
@@ -93,10 +92,16 @@ public class AdminWorkoutLabService : IAdminWorkoutLabService
             WeekDays = DayCodes.Zip(new[] { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" })
                 .Select(x => Item(x.First, x.Second))
                 .ToList(),
-            TrainingDaysPerWeekOptions = Enumerable.Range(2, 6).ToList(),
             DurationOptions = DurationOptions.ToList(),
             Equipment = equipment,
-            DefaultTrainingDaysPerWeek = DefaultTrainingDaysPerWeek,
+            // MerfitCustomerApi TrainingDayPlanner kurali (bilgi amacli).
+            TargetTrainingDaysByExperience = new Dictionary<string, int>
+            {
+                [nameof(ExperienceLevel.Beginner)] = 3,
+                [nameof(ExperienceLevel.Intermediate)] = 4,
+                [nameof(ExperienceLevel.Advanced)] = 5,
+            },
+            LoseWeightExtraTrainingDays = 1,
             DefaultWorkoutDurationMin = DefaultWorkoutDurationMin,
             DurationToleranceMin = DurationToleranceMin,
             ActiveWorkoutCount = await workouts.CountAsync(cancellationToken),
@@ -149,7 +154,7 @@ public class AdminWorkoutLabService : IAdminWorkoutLabService
             ProfileJson = source.ProfileJson,
             Goal = source.Goal,
             ExperienceLevel = source.ExperienceLevel,
-            TrainingDaysPerWeek = source.TrainingDaysPerWeek,
+            TrainingDaysPerWeek = 0,
             WorkoutDurationMin = source.WorkoutDurationMin,
             TrainingLocation = source.TrainingLocation,
             IsPlus = source.IsPlus,
@@ -396,9 +401,9 @@ public class AdminWorkoutLabService : IAdminWorkoutLabService
     }
 
     /// <summary>
-    /// Profili dogrular ve mobil uygulama/gercek sistemle ayni kurallara getirir: yalnizca uc ana hedef; spor
-    /// salonunda ekipman listesi bos (isleyici katalogdaki tum ekipmanlari kullanir); "Hic ekipmanim yok" diger
-    /// ekipmanlari temizler; belirli gunler secildiyse haftalik sayi bu gunlerden turetilir.
+    /// Profili dogrular ve mobil uygulama/gercek sistemle ayni kurallara getirir: yalnizca uc ana hedef; ekipmanli
+    /// (tum katalog) / ekipmansiz secimi, spor salonu her zaman ekipmanli; musait gunler bos (tum hafta) veya en az
+    /// 2 gun. Haftalik gun sayisini algoritma belirler; formdan alinmaz.
     /// </summary>
     internal async Task<WorkoutLabProfileJson> NormalizeProfileAsync(AdminWorkoutLabProfileInput input, CancellationToken cancellationToken)
     {
@@ -435,36 +440,9 @@ public class AdminWorkoutLabService : IAdminWorkoutLabService
 
         days = days.OrderBy(d => Array.IndexOf(DayCodes, d)).ToList();
 
-        var noEquipment = input.NoEquipment;
-        var equipmentIds = (input.EquipmentIds ?? new List<long>()).Distinct().ToList();
-        if (input.TrainingLocation == TrainingLocation.Gym)
-        {
-            equipmentIds.Clear();
-            noEquipment = false;
-        }
-        else if (noEquipment)
-        {
-            equipmentIds.Clear();
-        }
-        else if (equipmentIds.Count > 0)
-        {
-            var existing = await _unitOfWork.Repository<Equipment>().GetQueryable()
-                .Where(e => equipmentIds.Contains(e.Id))
-                .Select(e => e.Id)
-                .ToListAsync(cancellationToken);
-            var unknown = equipmentIds.Except(existing).ToList();
-            if (unknown.Count > 0)
-            {
-                throw new AppValidationException(nameof(input.EquipmentIds), $"Ekipman bulunamadı: {string.Join(", ", unknown)}.");
-            }
-
-            equipmentIds = equipmentIds.OrderBy(x => x).ToList();
-        }
-        else
-        {
-            // Ev/acik alanda ekipman secilmediyse kullanicinin ekipmani yoktur.
-            noEquipment = true;
-        }
+        // Spor salonu her zaman ekipmanlidir. Eski istemciler HasEquipment gondermezse ekipman listesinden turetilir.
+        var hasEquipment = input.TrainingLocation == TrainingLocation.Gym
+            || (input.HasEquipment ?? (!input.NoEquipment && (input.EquipmentIds?.Count ?? 0) > 0));
 
         return new WorkoutLabProfileJson
         {
@@ -476,9 +454,8 @@ public class AdminWorkoutLabService : IAdminWorkoutLabService
             Goal = input.Goal,
             ExperienceLevel = input.ExperienceLevel,
             TrainingLocation = input.TrainingLocation,
-            EquipmentIds = equipmentIds,
-            NoEquipment = noEquipment,
-            TrainingDaysPerWeek = days.Count > 0 ? days.Count : input.TrainingDaysPerWeek,
+            HasEquipment = hasEquipment,
+            NoEquipment = !hasEquipment,
             TrainingDays = days,
             WorkoutDurationMin = input.WorkoutDurationMin,
             IsPlus = input.IsPlus,
@@ -492,7 +469,8 @@ public class AdminWorkoutLabService : IAdminWorkoutLabService
         ProfileJson = JsonSerializer.Serialize(profile, ProfileJsonOptions),
         Goal = profile.Goal ?? FitnessGoal.BuildMuscle,
         ExperienceLevel = profile.ExperienceLevel ?? ExperienceLevel.Beginner,
-        TrainingDaysPerWeek = profile.TrainingDaysPerWeek ?? DefaultTrainingDaysPerWeek,
+        // Gun sayisini algoritma belirler; isleyici test tamamlaninca gercek degeri yazar.
+        TrainingDaysPerWeek = 0,
         WorkoutDurationMin = profile.WorkoutDurationMin,
         TrainingLocation = profile.TrainingLocation,
         IsPlus = profile.IsPlus,
@@ -563,9 +541,16 @@ public sealed class WorkoutLabProfileJson
     public FitnessGoal? Goal { get; set; }
     public ExperienceLevel? ExperienceLevel { get; set; }
     public TrainingLocation TrainingLocation { get; set; }
+
+    /// <summary>true: tum katalog, false: yalnizca vucut agirligi. Eski kayitlarda null olabilir.</summary>
+    public bool? HasEquipment { get; set; }
+
+    /// <summary>Eski kayitlar icin (2026.11-v2 oncesi). Yeni kayitlarda bos.</summary>
     public List<long> EquipmentIds { get; set; } = new();
     public bool NoEquipment { get; set; }
     public int? TrainingDaysPerWeek { get; set; }
+
+    /// <summary>Musait gunler; bos ise tum hafta.</summary>
     public List<string> TrainingDays { get; set; } = new();
     public int? WorkoutDurationMin { get; set; }
     public bool IsPlus { get; set; }

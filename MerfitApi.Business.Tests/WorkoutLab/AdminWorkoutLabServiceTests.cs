@@ -47,7 +47,7 @@ public class AdminWorkoutLabServiceTests
         {
             Age = 30, Gender = Gender.Male, HeightCm = 180, WeightKg = 80, TargetWeightKg = 75,
             Goal = FitnessGoal.BuildMuscle, ExperienceLevel = ExperienceLevel.Beginner, TrainingLocation = TrainingLocation.Home,
-            EquipmentIds = new List<long> { 1 }, TrainingDaysPerWeek = 3, WorkoutDurationMin = 45,
+            HasEquipment = true, WorkoutDurationMin = 45,
         };
         configure?.Invoke(profile);
         return new AdminCreateWorkoutLabSimulationRequest { Name = " Test ", Profile = profile };
@@ -73,7 +73,7 @@ public class AdminWorkoutLabServiceTests
         Assert.Equal("BuildMuscle", json.GetProperty("goal").GetString());
         Assert.Equal("Beginner", json.GetProperty("experienceLevel").GetString());
         Assert.Equal("Home", json.GetProperty("trainingLocation").GetString());
-        Assert.Equal(1, json.GetProperty("equipmentIds")[0].GetInt64());
+        Assert.True(json.GetProperty("hasEquipment").GetBoolean());
         Assert.False(json.GetProperty("isPlus").GetBoolean());
         Assert.Empty(uow.Set<UserProfile>());
         Assert.Empty(uow.Set<WorkoutPlan>());
@@ -93,51 +93,46 @@ public class AdminWorkoutLabServiceTests
         Assert.Empty(uow.Set<WorkoutPlanSimulation>());
     }
 
-    [Fact]
-    public async Task Gym_IgnoresSelectedEquipment_ProcessorUsesWholeCatalog()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task EquipmentFlag_IsStoredAsIs_WithoutEquipmentList(bool hasEquipment)
     {
         var (service, uow, _) = Create();
 
-        var dto = await service.CreateAsync(Request(p => { p.TrainingLocation = TrainingLocation.Gym; p.EquipmentIds = new List<long> { 1 }; }), 9, null, null);
+        var dto = await service.CreateAsync(Request(p => p.HasEquipment = hasEquipment), 9, null, null);
 
         var json = Profile(uow, dto.Id);
-        Assert.Equal(0, json.GetProperty("equipmentIds").GetArrayLength());
-        Assert.False(json.GetProperty("noEquipment").GetBoolean());
-    }
-
-    [Fact]
-    public async Task NoEquipment_ClearsOtherEquipment()
-    {
-        var (service, uow, _) = Create();
-
-        var dto = await service.CreateAsync(Request(p => { p.NoEquipment = true; p.EquipmentIds = new List<long> { 1, 2 }; }), 9, null, null);
-
-        var json = Profile(uow, dto.Id);
-        Assert.True(json.GetProperty("noEquipment").GetBoolean());
+        Assert.Equal(hasEquipment, json.GetProperty("hasEquipment").GetBoolean());
+        Assert.Equal(!hasEquipment, json.GetProperty("noEquipment").GetBoolean());
         Assert.Equal(0, json.GetProperty("equipmentIds").GetArrayLength());
     }
 
     [Fact]
-    public async Task HomeWithoutEquipment_IsTreatedAsNoEquipment()
+    public async Task Gym_IsAlwaysEquipped()
     {
         var (service, uow, _) = Create();
 
-        var dto = await service.CreateAsync(Request(p => p.EquipmentIds = new List<long>()), 9, null, null);
+        var dto = await service.CreateAsync(Request(p => { p.TrainingLocation = TrainingLocation.Gym; p.HasEquipment = false; }), 9, null, null);
 
-        Assert.True(Profile(uow, dto.Id).GetProperty("noEquipment").GetBoolean());
+        Assert.True(Profile(uow, dto.Id).GetProperty("hasEquipment").GetBoolean());
     }
 
-    [Fact]
-    public async Task UnknownEquipment_IsRejected()
+    [Theory]
+    [InlineData(false, new long[] { 1 }, true)]
+    [InlineData(true, new long[] { 1 }, false)]
+    [InlineData(false, new long[0], false)]
+    public async Task LegacyClients_WithoutFlag_DeriveItFromEquipmentList(bool noEquipment, long[] ids, bool expected)
     {
-        var (service, _, _) = Create();
+        var (service, uow, _) = Create();
 
-        var ex = await Assert.ThrowsAsync<AppValidationException>(() => service.CreateAsync(Request(p => p.EquipmentIds = new List<long> { 1, 99 }), 9, null, null));
-        Assert.Contains("99", ex.Message);
+        var dto = await service.CreateAsync(Request(p => { p.HasEquipment = null; p.NoEquipment = noEquipment; p.EquipmentIds = ids.ToList(); }), 9, null, null);
+
+        Assert.Equal(expected, Profile(uow, dto.Id).GetProperty("hasEquipment").GetBoolean());
     }
 
     [Fact]
-    public async Task SpecificDays_DeriveDayCount_AndAreSortedMondayFirst()
+    public async Task AvailableDays_AreSortedMondayFirst_AndDayCountIsLeftToAlgorithm()
     {
         var (service, uow, _) = Create();
 
@@ -145,8 +140,8 @@ public class AdminWorkoutLabServiceTests
 
         var json = Profile(uow, dto.Id);
         Assert.Equal(new[] { "Mon", "Thu", "Sat" }, json.GetProperty("trainingDays").EnumerateArray().Select(x => x.GetString()));
-        Assert.Equal(3, json.GetProperty("trainingDaysPerWeek").GetInt32());
-        Assert.Equal(3, dto.TrainingDaysPerWeek);
+        Assert.Equal(JsonValueKind.Null, json.GetProperty("trainingDaysPerWeek").ValueKind);
+        Assert.Equal(0, dto.TrainingDaysPerWeek);
     }
 
     [Theory]
@@ -302,7 +297,8 @@ public class AdminWorkoutLabServiceTests
         Assert.Equal(new[] { "Barbell", "Dumbbell" }, options.Equipment.Select(e => e.Name));
         Assert.Equal(new[] { "BuildMuscle", "GetStronger", "LoseWeight" }, options.Goals.Select(g => g.Value));
         Assert.Equal(new[] { 15, 20, 30, 45, 60, 75, 90 }, options.DurationOptions);
-        Assert.Equal(new[] { 2, 3, 4, 5, 6, 7 }, options.TrainingDaysPerWeekOptions);
+        Assert.Equal(new[] { 3, 4, 5 }, options.TargetTrainingDaysByExperience.Values);
+        Assert.Equal(1, options.LoseWeightExtraTrainingDays);
         Assert.Equal(2, options.ActiveWorkoutCount);
         Assert.Equal(1, options.ActivePremiumWorkoutCount);
         Assert.Equal(1, options.ActiveScoredWorkoutCount);

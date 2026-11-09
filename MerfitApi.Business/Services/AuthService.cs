@@ -53,6 +53,9 @@ public class AuthService : IAuthService
         var (firstName, lastName) = SplitName(request.Name);
 
         var equipmentIds = (request.EquipmentIds ?? new List<long>()).Distinct().ToList();
+        var trainingLocation = ParseTrainingLocation(request.TrainingLocation);
+        var hasEquipment = request.HasEquipment ?? (trainingLocation == TrainingLocation.Gym || equipmentIds.Count > 0);
+        var availableDays = ParseAvailableDays(request.AvailableTrainingDays);
 
         await _unitOfWork.BeginTransactionAsync();
         var user = new ApplicationUser
@@ -90,8 +93,11 @@ public class AuthService : IAuthService
             Goal = ParseFitnessGoal(request.Goal),
             ExperienceLevel = ParseExperienceLevel(request.TrainingExperience),
             ActivityLevel = ParseActivityLevel(request.ActivityLevel),
-            TrainingLocation = ParseTrainingLocation(request.TrainingLocation),
+            TrainingLocation = trainingLocation,
+            HasEquipment = hasEquipment,
+            // Gun sayisini algoritma belirler (MerfitCustomerApi); eski istemcilerin gonderdigi deger yalnizca kayit icindir.
             TrainingDaysPerWeek = request.TrainingDays,
+            PreferredTrainingDays = availableDays,
             UnitSystem = unitSystem,
             CreatedAt = DateTime.UtcNow,
         };
@@ -445,5 +451,36 @@ public class AuthService : IAuthService
             "outdoor" => TrainingLocation.Outdoor,
             _ => null,
         };
+    }
+
+    private static readonly string[] DayCodes = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
+    /// <summary>
+    /// Musait gunleri "Mon,Wed,Fri" bicimine getirir. Bos ise null (tum hafta). Gecersiz kod veya tek gun hata verir.
+    /// </summary>
+    private static string? ParseAvailableDays(List<string>? codes)
+    {
+        if (codes is null || codes.Count == 0)
+        {
+            return null;
+        }
+
+        var days = new List<string>();
+        foreach (var raw in codes)
+        {
+            var code = DayCodes.FirstOrDefault(c => string.Equals(c, raw?.Trim(), StringComparison.OrdinalIgnoreCase))
+                ?? throw new AppValidationException(nameof(RegisterRequest.AvailableTrainingDays), $"Gecersiz gun: {raw}.");
+            if (!days.Contains(code))
+            {
+                days.Add(code);
+            }
+        }
+
+        if (days.Count < 2)
+        {
+            throw new AppValidationException(nameof(RegisterRequest.AvailableTrainingDays), "En az 2 gun secilmelidir.");
+        }
+
+        return string.Join(",", days.OrderBy(d => Array.IndexOf(DayCodes, d)));
     }
 }
