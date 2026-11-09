@@ -51,7 +51,7 @@ public class AdminWorkoutLabAuthorizationTests : IClassFixture<WebApplicationFac
     private static readonly object CreateBody = new
     {
         name = "Ev",
-        profile = new { goal = "BuildMuscle", experienceLevel = "Beginner", trainingLocation = "Home", noEquipment = true, trainingDaysPerWeek = 3, workoutDurationMin = 45 },
+        profile = new { goal = "BuildMuscle", experienceLevel = "Beginner", trainingLocation = "Home", hasEquipment = false, trainingDays = new[] { "Mon", "Wed", "Fri" }, workoutDurationMin = 45 },
     };
 
     public static TheoryData<string, string, string> Endpoints => new()
@@ -122,7 +122,7 @@ public class AdminWorkoutLabAuthorizationTests : IClassFixture<WebApplicationFac
     }
 
     [Theory]
-    [InlineData("{\"profile\":{\"trainingDaysPerWeek\":1}}")]
+    [InlineData("{\"profile\":{\"heightCm\":20}}")]
     [InlineData("{\"profile\":{\"workoutDurationMin\":300}}")]
     [InlineData("{\"profile\":{\"age\":5}}")]
     public async Task Create_WithOutOfRangeValues_Gets400_WithoutCallingService(string json)

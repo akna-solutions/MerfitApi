@@ -36,7 +36,7 @@ public class AdminWorkoutLabPostgresTests
         var list = await service.GetListAsync(new AdminWorkoutLabSimulationListRequest { Search = name, Goal = FitnessGoal.GetStronger });
         Assert.Equal(created.Id, list.Items.Single().Id);
         Assert.Equal("Pending", list.Items.Single().Status);
-        Assert.Equal(2, list.Items.Single().TrainingDaysPerWeek);
+        Assert.Equal(0, list.Items.Single().TrainingDaysPerWeek);
 
         var detail = await service.GetByIdAsync(created.Id);
         Assert.Equal("Gym", detail.Profile!.Value.GetProperty("trainingLocation").GetString());

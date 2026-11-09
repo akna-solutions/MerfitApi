@@ -66,7 +66,7 @@ public class RegisterRequest
     /// <summary>beginner | intermediate | advanced (ExperienceStep).</summary>
     public string? TrainingExperience { get; set; }
 
-    /// <summary>Haftada kac gun antrenman yapilmak istendigi (FrequencyStep).</summary>
+    /// <summary>Eski istemciler icin: haftalik gun sayisi. Artik kullanilmaz; gun sayisini algoritma belirler.</summary>
     [Range(1, 7, ErrorMessage = "Antrenman gunu 1-7 araliginda olmalidir.")]
     public int? TrainingDays { get; set; }
 
@@ -78,4 +78,14 @@ public class RegisterRequest
     /// Register sirasinda UserEquipment kayitlarini olusturmak icin kullanilir.
     /// </summary>
     public List<long>? EquipmentIds { get; set; }
+
+    /// <summary>
+    /// Ekipmanli (true) / ekipmansiz (false). Gonderilmezse eski davranis: gym veya ekipman listesi doluysa ekipmanli.
+    /// </summary>
+    public bool? HasEquipment { get; set; }
+
+    /// <summary>
+    /// Kullanicinin antrenman yapabilecegi gunler ("Mon".."Sun"). Bos/null: tum hafta. Doluysa en az 2 gun.
+    /// </summary>
+    public List<string>? AvailableTrainingDays { get; set; }
 }

@@ -90,9 +90,12 @@ public class AdminUserProfileDto
     public ExperienceLevel? ExperienceLevel { get; set; }
     public ActivityLevel? ActivityLevel { get; set; }
     public TrainingLocation? TrainingLocation { get; set; }
+    /// <summary>Algoritmanin belirledigi haftalik gun sayisi (eski kayitlarda kullanicinin sectigi deger olabilir).</summary>
     public int? TrainingDaysPerWeek { get; set; }
-    /// <summary>Kullanicinin sectigi antrenman gunleri ("Mon,Wed,Fri"); secim yoksa null.</summary>
+    /// <summary>Kullanicinin musait gunleri ("Mon,Wed,Fri"); null ise tum hafta.</summary>
     public string? PreferredTrainingDays { get; set; }
+    /// <summary>Ekipmanli (tum katalog) / ekipmansiz (vucut agirligi).</summary>
+    public bool HasEquipment { get; set; }
     public UnitSystem UnitSystem { get; set; }
 }
 
