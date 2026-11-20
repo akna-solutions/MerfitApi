@@ -131,6 +131,10 @@ public class UserDataPurger : IUserDataPurger
         ("store.Favorite", """DELETE FROM store."Favorite" WHERE "UserId" = {0}"""),
         ("store.Address", """DELETE FROM store."Address" WHERE "UserId" = {0}"""),
 
+        // Aktivite (adim sayar; MerfitCustomerApi tablolari)
+        ("activity.DailyActivity", """DELETE FROM activity."DailyActivity" WHERE "UserId" = {0}"""),
+        ("activity.UserActivitySetting", """DELETE FROM activity."UserActivitySetting" WHERE "UserId" = {0}"""),
+
         // Profil
         ("profile.BodyMeasurement", """DELETE FROM profile."BodyMeasurement" WHERE "UserId" = {0}"""),
         ("profile.GoalHistory", """DELETE FROM profile."GoalHistory" WHERE "UserId" = {0}"""),
