@@ -124,6 +124,7 @@ builder.Services.AddScoped<IAdminStoreCategoryService, AdminStoreCategoryService
 builder.Services.AddScoped<IAdminProductService, AdminProductService>();
 builder.Services.AddScoped<IAdminStoreCampaignService, AdminStoreCampaignService>();
 builder.Services.AddScoped<IAdminStoreOrderService, AdminStoreOrderService>();
+builder.Services.AddScoped<IAdminProductReviewService, AdminProductReviewService>();
 builder.Services.AddScoped<IAdminLanguageService, AdminLanguageService>();
 builder.Services.AddScoped<IAdminTranslationService, AdminTranslationService>();
 builder.Services.AddScoped<IAdminLegalService, AdminLegalService>();

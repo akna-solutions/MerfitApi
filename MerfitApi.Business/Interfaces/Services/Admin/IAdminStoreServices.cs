@@ -45,3 +45,25 @@ public interface IAdminStoreOrderService
     Task<AdminStoreOrderDto> UpdateStatusAsync(long id, AdminUpdateStoreOrderStatusRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
     Task<AdminStoreOrderDto> UpdatePaymentStatusAsync(long id, AdminUpdateStorePaymentStatusRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
 }
+
+/// <summary>
+/// MB Shop urun yorumu moderasyonu: listeleme/arama, gizleme, yeniden yayinlama, silme ve raporlari kapatma. Tum
+/// islemler audit log'a yazilir; yorum gecmisi bu kayitlardan olusur.
+/// </summary>
+public interface IAdminProductReviewService
+{
+    Task<PagedResult<AdminProductReviewListItemDto>> GetListAsync(AdminProductReviewListRequest request, CancellationToken cancellationToken = default);
+
+    Task<AdminProductReviewDto> GetByIdAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Published &lt;-&gt; Hidden. Gizleme acik raporlari "Resolved", yeniden yayinlama "Dismissed" yapar. Gecersiz gecis 409.</summary>
+    Task<AdminProductReviewDto> UpdateStatusAsync(long id, AdminUpdateProductReviewStatusRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
+
+    /// <summary>Yorumu kalici olarak yayindan kaldirir (Deleted). Silinmis yorum geri alinamaz.</summary>
+    Task<AdminProductReviewDto> DeleteAsync(long id, string? note, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
+
+    /// <summary>Acik raporlari "Dismissed" yapar; yorum yayinda kalir.</summary>
+    Task<AdminProductReviewDto> DismissReportsAsync(long id, string? note, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
+
+    Task<AdminProductReviewImageFile> GetImageAsync(long reviewId, long imageId, CancellationToken cancellationToken = default);
+}
