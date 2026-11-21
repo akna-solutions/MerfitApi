@@ -216,6 +216,7 @@ public class AdminStoreOrderService : IAdminStoreOrderService
                 await ReleaseStockAsync(order, cancellationToken);
             }
 
+            await RefreshReviewBadgesAsync(order, cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
         }
         catch
@@ -290,6 +291,7 @@ public class AdminStoreOrderService : IAdminStoreOrderService
                 await ReleaseStockAsync(order, cancellationToken);
             }
 
+            await RefreshReviewBadgesAsync(order, cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
         }
         catch
@@ -344,6 +346,11 @@ public class AdminStoreOrderService : IAdminStoreOrderService
         await _unitOfWork.Repository<NotificationDispatch>().AddAsync(dispatch, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
+
+    /// <summary>Siparis teslim edildiginde veya iptal/iade edildiginde urun yorumlarindaki onayli alisveris etiketini gunceller.</summary>
+    private Task RefreshReviewBadgesAsync(StoreOrder order, CancellationToken cancellationToken) =>
+        ProductReviewPurchaseSync.RefreshAsync(_unitOfWork, order.UserId,
+            order.Items.Where(i => i.ProductId.HasValue).Select(i => i.ProductId!.Value).Distinct().ToList(), cancellationToken);
 
     /// <summary>Siparisteki urunlerin stogunu geri ekler (silinmis urunler atlanir).</summary>
     private async Task ReleaseStockAsync(StoreOrder order, CancellationToken cancellationToken)

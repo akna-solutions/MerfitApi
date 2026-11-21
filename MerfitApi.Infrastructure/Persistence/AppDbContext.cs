@@ -387,6 +387,18 @@ public class AppDbContext : DbContext
     /// <summary>Siparis durum gecmisi.</summary>
     public DbSet<StoreOrderStatusHistory> StoreOrderStatusHistories => Set<StoreOrderStatusHistory>();
 
+    /// <summary>MB Shop urun yorumlari (MerfitCustomerApi tablolari).</summary>
+    public DbSet<ProductReview> ProductReviews => Set<ProductReview>();
+
+    /// <summary>Yorum fotograflari.</summary>
+    public DbSet<ProductReviewImage> ProductReviewImages => Set<ProductReviewImage>();
+
+    /// <summary>Yorum faydali oylari.</summary>
+    public DbSet<ProductReviewVote> ProductReviewVotes => Set<ProductReviewVote>();
+
+    /// <summary>Yorum raporlari.</summary>
+    public DbSet<ProductReviewReport> ProductReviewReports => Set<ProductReviewReport>();
+
     /// <summary>
     /// FAQCategory kayitlarina erisim saglayan DbSet.
     /// </summary>

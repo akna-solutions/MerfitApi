@@ -116,6 +116,27 @@ public class UserDataPurger : IUserDataPurger
             """),
         ("support.SupportTicket", """DELETE FROM support."SupportTicket" WHERE "UserId" = {0}"""),
 
+        // MB Shop urun yorumlari (MerfitCustomerApi tablolari). Kullanicinin baska yorumlara verdigi oylar silinmeden
+        // once o yorumlarin sayaclari kullanicinin oyu haric tutularak yeniden hesaplanir.
+        ("store.ProductReview", """
+            UPDATE store."ProductReview" r SET
+                "HelpfulCount" = (SELECT count(*) FROM store."ProductReviewVote" v WHERE v."ReviewId" = r."Id" AND v."IsHelpful" AND v."UserId" <> {0}),
+                "NotHelpfulCount" = (SELECT count(*) FROM store."ProductReviewVote" v WHERE v."ReviewId" = r."Id" AND NOT v."IsHelpful" AND v."UserId" <> {0})
+            WHERE r."Id" IN (SELECT "ReviewId" FROM store."ProductReviewVote" WHERE "UserId" = {0})
+            """),
+        ("store.ProductReviewVote", """
+            DELETE FROM store."ProductReviewVote"
+            WHERE "UserId" = {0} OR "ReviewId" IN (SELECT "Id" FROM store."ProductReview" WHERE "UserId" = {0})
+            """),
+        ("store.ProductReviewReport", """
+            DELETE FROM store."ProductReviewReport"
+            WHERE "ReporterUserId" = {0} OR "ReviewId" IN (SELECT "Id" FROM store."ProductReview" WHERE "UserId" = {0})
+            """),
+        ("store.ProductReviewImage", """
+            DELETE FROM store."ProductReviewImage" WHERE "ReviewId" IN (SELECT "Id" FROM store."ProductReview" WHERE "UserId" = {0})
+            """),
+        ("store.ProductReview", """DELETE FROM store."ProductReview" WHERE "UserId" = {0}"""),
+
         // MB Shop
         ("store.OrderItem", """
             DELETE FROM store."OrderItem" WHERE "OrderId" IN (SELECT "Id" FROM store."Order" WHERE "UserId" = {0})
