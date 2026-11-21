@@ -126,6 +126,10 @@ public class AdminProductListItemDto
     public int StockQuantity { get; set; }
     public bool IsActive { get; set; }
     public bool IsFeatured { get; set; }
+
+    /// <summary>Elle atanan vitrin rozeti kodu (bkz. AdminProductBadges); null ise yok.</summary>
+    public string? HighlightBadge { get; set; }
+
     public int SortOrder { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -193,6 +197,13 @@ public class AdminUpsertProductRequest
 
     public bool IsActive { get; set; } = true;
     public bool IsFeatured { get; set; }
+
+    /// <summary>
+    /// Elle atanan vitrin rozeti: "advantageous" (Avantajli Urun) veya "mbfit_pick" (MBFit Secimi); bos/null rozeti kaldirir.
+    /// Yeni, Cok Satan, Son N Urun, Kargo Bedava ve Yuksek Puanli rozetleri veriden otomatik turetilir, buradan atanamaz.
+    /// </summary>
+    [StringLength(32)]
+    public string? HighlightBadge { get; set; }
 
     [Range(0, 10000, ErrorMessage = "Sira 0-10000 arasinda olmalidir.")]
     public int SortOrder { get; set; }
