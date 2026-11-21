@@ -185,6 +185,29 @@ public class AdminStorePostgresTests
     }
 
     [PostgresFact]
+    public async Task Product_HighlightBadge_IsValidatedNormalizedAndClearable()
+    {
+        var category = await CategoryAsync();
+        var request = ProductRequest(category);
+        request.HighlightBadge = " Advantageous ";
+        var created = await CreateProductAsync(request);
+        Assert.Equal("advantageous", created.HighlightBadge);
+
+        var invalid = ProductRequest(category, sku: created.Sku);
+        invalid.Slug = created.Slug;
+        invalid.HighlightBadge = "bestseller"; // veriden turetilir, elle atanamaz
+        var error = await Assert.ThrowsAsync<AppValidationException>(() =>
+            Run((uow, audit) => new AdminProductService(uow, audit).UpdateAsync(created.Id, invalid, 1, null, null)));
+        Assert.Contains("HighlightBadge", error.Errors.Keys);
+
+        var clear = ProductRequest(category, sku: created.Sku);
+        clear.Slug = created.Slug;
+        clear.HighlightBadge = "";
+        var cleared = await Run((uow, audit) => new AdminProductService(uow, audit).UpdateAsync(created.Id, clear, 1, null, null));
+        Assert.Null(cleared.HighlightBadge);
+    }
+
+    [PostgresFact]
     public async Task Stock_CannotGoNegative_EvenUnderConcurrentAdjustments()
     {
         var category = await CategoryAsync();

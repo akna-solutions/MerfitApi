@@ -40,6 +40,12 @@ public class Product : BaseEntity
     /// <summary>"Senin Icin Sectiklerimiz" / one cikanlar.</summary>
     public bool IsFeatured { get; set; }
 
+    /// <summary>
+    /// Admin'in elle atadigi vitrin rozeti ("advantageous" = Avantajli Urun, "mbfit_pick" = MBFit Secimi); null ise yok.
+    /// Diger rozetler (yeni, cok satan, son urunler, kargo bedava, yuksek puan) CustomerApi'de gercek veriden turetilir.
+    /// </summary>
+    public string? HighlightBadge { get; set; }
+
     /// <summary>Admin'in belirledigi gosterim sirasi ("one cikanlar" siralamasi).</summary>
     public int SortOrder { get; set; }
 

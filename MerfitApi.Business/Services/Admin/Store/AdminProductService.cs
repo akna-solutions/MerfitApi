@@ -280,6 +280,7 @@ public partial class AdminProductService : IAdminProductService
         product.DiscountPrice = discountPrice;
         product.IsActive = request.IsActive;
         product.IsFeatured = request.IsFeatured;
+        product.HighlightBadge = AdminProductBadges.Normalize(request.HighlightBadge, nameof(request.HighlightBadge));
         product.SortOrder = request.SortOrder;
         product.FeaturesJson = features.Count == 0 ? null : JsonSerializer.Serialize(features, AdminStoreInput.Json);
         product.SpecsJson = specs.Count == 0 ? null : JsonSerializer.Serialize(specs, AdminStoreInput.Json);
@@ -421,6 +422,7 @@ public partial class AdminProductService : IAdminProductService
             StockQuantity = p.StockQuantity,
             IsActive = p.IsActive,
             IsFeatured = p.IsFeatured,
+            HighlightBadge = p.HighlightBadge,
             SortOrder = p.SortOrder,
             ImageUrl = primary.GetValueOrDefault(p.Id),
             CreatedAt = p.CreatedAt,
@@ -443,7 +445,7 @@ public partial class AdminProductService : IAdminProductService
 
     private static object Snapshot(Product p) => new
     {
-        p.Name, p.Slug, p.Sku, p.CategoryId, p.Brand, p.Price, p.DiscountPrice, p.StockQuantity, p.IsActive, p.IsFeatured, p.SortOrder,
+        p.Name, p.Slug, p.Sku, p.CategoryId, p.Brand, p.Price, p.DiscountPrice, p.StockQuantity, p.IsActive, p.IsFeatured, p.HighlightBadge, p.SortOrder,
         Images = p.Images.Count,
     };
 }
