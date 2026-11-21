@@ -170,6 +170,12 @@ public class AppDbContext : DbContext
     /// </summary>
     public DbSet<WorkoutSetLog> WorkoutSetLogs => Set<WorkoutSetLog>();
 
+    // Antrenman motoru (sema CustomerApi migration'i ile olusur; burada yalnizca eslenir).
+    public DbSet<ExerciseMuscleGroup> ExerciseMuscleGroups => Set<ExerciseMuscleGroup>();
+    public DbSet<ExerciseEquipment> ExerciseEquipments => Set<ExerciseEquipment>();
+    public DbSet<UserTrainingPreference> UserTrainingPreferences => Set<UserTrainingPreference>();
+    public DbSet<WorkoutSessionFeedback> WorkoutSessionFeedbacks => Set<WorkoutSessionFeedback>();
+
     /// <summary>
     /// PersonalRecord kayitlarina erisim saglayan DbSet.
     /// </summary>

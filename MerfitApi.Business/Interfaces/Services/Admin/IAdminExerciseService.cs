@@ -16,5 +16,9 @@ public interface IAdminExerciseService
 
     Task DeleteAsync(long id, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
 
+    Task<AdminExerciseDetailDto> UpdateTrainingMetadataAsync(long id, AdminUpdateExerciseTrainingMetadataRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
+
+    Task<AdminExerciseMetadataAuditDto> GetMetadataAuditAsync(CancellationToken cancellationToken = default);
+
     Task UpdateStatusAsync(long id, AdminUpdateExerciseStatusRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default);
 }

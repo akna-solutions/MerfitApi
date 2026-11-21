@@ -39,6 +39,17 @@ public class AdminExerciseController : AdminControllerBase
         long id, [FromBody] AdminUpsertExerciseRequest request, CancellationToken cancellationToken)
         => SuccessResponse(await _service.UpdateAsync(id, request, CurrentAdminId, ClientIp, UserAgent, cancellationToken));
 
+    /// <summary>Antrenman motoru metadata'si: mekanik, patern, agirlik artisi, yardimci kaslar, ekipman baglantilari.</summary>
+    [HttpPut("{id:long}/training-metadata")]
+    public async Task<ActionResult<ApiResponse<AdminExerciseDetailDto>>> UpdateTrainingMetadata(
+        long id, [FromBody] AdminUpdateExerciseTrainingMetadataRequest request, CancellationToken cancellationToken)
+        => SuccessResponse(await _service.UpdateTrainingMetadataAsync(id, request, CurrentAdminId, ClientIp, UserAgent, cancellationToken));
+
+    /// <summary>Aktif egzersizlerde eksik antrenman metadata'si raporu.</summary>
+    [HttpGet("metadata-audit")]
+    public async Task<ActionResult<ApiResponse<AdminExerciseMetadataAuditDto>>> GetMetadataAudit(CancellationToken cancellationToken)
+        => SuccessResponse(await _service.GetMetadataAuditAsync(cancellationToken));
+
     [HttpDelete("{id:long}")]
     public async Task<ActionResult<ApiResponse>> Delete(long id, CancellationToken cancellationToken)
     {

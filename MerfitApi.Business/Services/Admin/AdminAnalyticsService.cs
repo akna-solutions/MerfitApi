@@ -69,8 +69,10 @@ public class AdminAnalyticsService : IAdminAnalyticsService
         var completionRate = total == 0 ? 0 : Math.Round(completed * 100.0 / total, 2);
         var avgPerUser = activeUserCount == 0 ? 0 : Math.Round((double)completed / activeUserCount, 2);
 
+        // Antrenman motoru gunlerinden baslatilan oturumlarda katalog antrenmani yoktur (WorkoutId null); listeye girmez.
         var topWorkoutsRaw = await sessions
-            .GroupBy(s => s.WorkoutId)
+            .Where(s => s.WorkoutId != null)
+            .GroupBy(s => s.WorkoutId!.Value)
             .Select(g => new { WorkoutId = g.Key, Count = g.LongCount() })
             .OrderByDescending(x => x.Count)
             .Take(5)

@@ -404,17 +404,25 @@ public class AdminUserService : IAdminUserService
             .Take(request.PageSize)
             .ToListAsync(cancellationToken);
 
-        var workoutIds = raw.Select(s => s.WorkoutId).Distinct().ToList();
+        var workoutIds = raw.Where(s => s.WorkoutId.HasValue).Select(s => s.WorkoutId!.Value).Distinct().ToList();
         var workouts = await _unitOfWork.Repository<Workout>().GetQueryable()
             .Where(w => workoutIds.Contains(w.Id))
             .Select(w => new { w.Id, w.Title })
             .ToListAsync(cancellationToken);
+        var planDayIds = raw.Where(s => s.WorkoutId is null && s.WorkoutPlanDayId.HasValue).Select(s => s.WorkoutPlanDayId!.Value).Distinct().ToList();
+        var planDayTitles = planDayIds.Count == 0
+            ? new Dictionary<long, string?>()
+            : await _unitOfWork.Repository<WorkoutPlanDay>().GetQueryable()
+                .Where(d => planDayIds.Contains(d.Id))
+                .ToDictionaryAsync(d => d.Id, d => d.Title, cancellationToken);
 
         var items = raw.Select(s => new AdminUserWorkoutSessionListItemDto
         {
             Id = s.Id,
             WorkoutId = s.WorkoutId,
-            WorkoutTitle = workouts.FirstOrDefault(w => w.Id == s.WorkoutId)?.Title ?? "-",
+            WorkoutTitle = workouts.FirstOrDefault(w => w.Id == s.WorkoutId)?.Title
+                ?? (s.WorkoutPlanDayId is long dayId ? planDayTitles.GetValueOrDefault(dayId) : null)
+                ?? "-",
             StartedAt = s.StartedAt,
             CompletedAt = s.CompletedAt,
             DurationSeconds = s.DurationSeconds,

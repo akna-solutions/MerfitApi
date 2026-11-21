@@ -3,6 +3,7 @@ using MerfitApi.Business.Common.Pagination;
 using MerfitApi.Business.Dtos.Admin.Exercises;
 using MerfitApi.Business.Interfaces.Services.Admin;
 using MerfitApi.Domain.Entities;
+using MerfitApi.Domain.Entities.Enums;
 using MerfitApi.Domain.Exceptions;
 using MerfitApi.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -201,6 +202,134 @@ public class AdminExerciseService : IAdminExerciseService
         await _auditLogService.LogAsync(adminUserId, "EXERCISE_STATUS_CHANGED", nameof(Exercise), id, ipAddress, userAgent, oldValue, new { entity.IsActive }, cancellationToken);
     }
 
+    public async Task<AdminExerciseDetailDto> UpdateTrainingMetadataAsync(long id, AdminUpdateExerciseTrainingMetadataRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default)
+    {
+        var repo = _unitOfWork.Repository<Exercise>();
+        var entity = await repo.GetQueryable(asNoTracking: false).FirstOrDefaultAsync(x => x.Id == id, cancellationToken)
+            ?? throw new NotFoundException(nameof(Exercise), id);
+
+        if (request.MechanicType.HasValue && !Enum.IsDefined(request.MechanicType.Value))
+        {
+            throw new AppValidationException(nameof(request.MechanicType), "Geçersiz mekanik tipi.");
+        }
+        if (request.MovementPattern.HasValue && !Enum.IsDefined(request.MovementPattern.Value))
+        {
+            throw new AppValidationException(nameof(request.MovementPattern), "Geçersiz hareket paterni.");
+        }
+
+        var secondary = request.SecondaryMuscleGroupIds.Distinct().Where(m => m != entity.PrimaryMuscleGroupId).ToList();
+        if (secondary.Count > 0 && await _unitOfWork.Repository<MuscleGroup>().GetQueryable().CountAsync(m => secondary.Contains(m.Id), cancellationToken) != secondary.Count)
+        {
+            throw new AppValidationException(nameof(request.SecondaryMuscleGroupIds), "Belirtilen kas gruplarından biri bulunamadı.");
+        }
+
+        var equipment = request.EquipmentIds.Distinct().ToList();
+        if (equipment.Count > 0 && await _unitOfWork.Repository<Equipment>().GetQueryable().CountAsync(e => equipment.Contains(e.Id), cancellationToken) != equipment.Count)
+        {
+            throw new AppValidationException(nameof(request.EquipmentIds), "Belirtilen ekipmanlardan biri bulunamadı.");
+        }
+
+        var muscleRepo = _unitOfWork.Repository<ExerciseMuscleGroup>();
+        var equipmentRepo = _unitOfWork.Repository<ExerciseEquipment>();
+        var oldMuscles = await muscleRepo.GetQueryable(asNoTracking: false).Where(x => x.ExerciseId == id).ToListAsync(cancellationToken);
+        var oldEquipment = await equipmentRepo.GetQueryable(asNoTracking: false).Where(x => x.ExerciseId == id).ToListAsync(cancellationToken);
+        var oldValue = new
+        {
+            entity.MechanicType, entity.MovementPattern, entity.LoadIncrementKg,
+            Secondary = oldMuscles.Select(m => m.MuscleGroupId).OrderBy(x => x).ToList(),
+            Equipment = oldEquipment.Select(e => e.EquipmentId).OrderBy(x => x).ToList(),
+        };
+
+        await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        entity.MechanicType = request.MechanicType;
+        entity.MovementPattern = request.MovementPattern;
+        entity.LoadIncrementKg = request.LoadIncrementKg;
+        entity.UpdatedAt = DateTime.UtcNow;
+        entity.UpdatedUser = adminUserId;
+        repo.Update(entity);
+
+        foreach (var row in oldMuscles.Where(m => m.Role != ExerciseMuscleRole.Secondary || !secondary.Contains(m.MuscleGroupId)))
+        {
+            muscleRepo.Remove(row);
+        }
+        var keptMuscles = oldMuscles.Where(m => m.Role == ExerciseMuscleRole.Secondary).Select(m => m.MuscleGroupId).ToHashSet();
+        foreach (var muscleId in secondary.Where(m => !keptMuscles.Contains(m)))
+        {
+            await muscleRepo.AddAsync(new ExerciseMuscleGroup { ExerciseId = id, MuscleGroupId = muscleId, Role = ExerciseMuscleRole.Secondary, CreatedAt = DateTime.UtcNow, CreatedUser = adminUserId }, cancellationToken);
+        }
+
+        foreach (var row in oldEquipment.Where(e => !equipment.Contains(e.EquipmentId)))
+        {
+            equipmentRepo.Remove(row);
+        }
+        var keptEquipment = oldEquipment.Select(e => e.EquipmentId).ToHashSet();
+        foreach (var equipmentId in equipment.Where(e => !keptEquipment.Contains(e)))
+        {
+            await equipmentRepo.AddAsync(new ExerciseEquipment { ExerciseId = id, EquipmentId = equipmentId, CreatedAt = DateTime.UtcNow, CreatedUser = adminUserId }, cancellationToken);
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.CommitTransactionAsync(cancellationToken);
+
+        await _auditLogService.LogAsync(adminUserId, "EXERCISE_TRAINING_METADATA_UPDATED", nameof(Exercise), id, ipAddress, userAgent, oldValue,
+            new { entity.MechanicType, entity.MovementPattern, entity.LoadIncrementKg, Secondary = secondary, Equipment = equipment }, cancellationToken);
+
+        return await MapToDetailAsync(entity, cancellationToken);
+    }
+
+    public async Task<AdminExerciseMetadataAuditDto> GetMetadataAuditAsync(CancellationToken cancellationToken = default)
+    {
+        var exercises = await _unitOfWork.Repository<Exercise>().GetQueryable()
+            .Where(e => e.IsActive)
+            .Select(e => new { e.Id, e.Name, e.PrimaryMuscleGroupId, e.MechanicType, e.MovementPattern, e.LoadIncrementKg, e.EquipmentType, e.ImageUrl, e.VideoUrl })
+            .ToListAsync(cancellationToken);
+        var ids = exercises.Select(e => e.Id).ToList();
+        var withSecondary = (await _unitOfWork.Repository<ExerciseMuscleGroup>().GetQueryable()
+            .Where(l => ids.Contains(l.ExerciseId) && l.Role == ExerciseMuscleRole.Secondary).Select(l => l.ExerciseId).Distinct().ToListAsync(cancellationToken)).ToHashSet();
+        var withEquipment = (await _unitOfWork.Repository<ExerciseEquipment>().GetQueryable()
+            .Where(l => ids.Contains(l.ExerciseId)).Select(l => l.ExerciseId).Distinct().ToListAsync(cancellationToken)).ToHashSet();
+        var muscles = await _unitOfWork.Repository<MuscleGroup>().GetQueryable().Select(m => new { m.Id, m.Name }).ToListAsync(cancellationToken);
+        var muscleNames = muscles.ToDictionary(m => m.Id, m => m.Name);
+
+        var items = exercises.Select(e =>
+        {
+            var missing = new List<string>();
+            if (e.MechanicType is null) missing.Add("MechanicType");
+            if (e.MovementPattern is null) missing.Add("MovementPattern");
+            if (e.LoadIncrementKg is null) missing.Add("LoadIncrementKg");
+            // Izolasyon hareketlerinde yardimci kas beklenmez.
+            if (e.MechanicType != ExerciseMechanicType.Isolation && !withSecondary.Contains(e.Id)) missing.Add("SecondaryMuscles");
+            if (!withEquipment.Contains(e.Id)) missing.Add("EquipmentLinks");
+            if (string.IsNullOrWhiteSpace(e.EquipmentType)) missing.Add("EquipmentType");
+            if (string.IsNullOrWhiteSpace(e.ImageUrl) && string.IsNullOrWhiteSpace(e.VideoUrl)) missing.Add("Media");
+            return new AdminExerciseMetadataAuditItemDto
+            {
+                Id = e.Id,
+                Name = e.Name,
+                PrimaryMuscleGroupName = muscleNames.GetValueOrDefault(e.PrimaryMuscleGroupId, "-"),
+                Missing = missing,
+            };
+        }).ToList();
+
+        int Count(string field) => items.Count(i => i.Missing.Contains(field));
+        return new AdminExerciseMetadataAuditDto
+        {
+            ActiveExerciseCount = exercises.Count,
+            MissingMechanicType = Count("MechanicType"),
+            MissingMovementPattern = Count("MovementPattern"),
+            MissingLoadIncrement = Count("LoadIncrementKg"),
+            MissingSecondaryMuscles = Count("SecondaryMuscles"),
+            MissingEquipmentLinks = Count("EquipmentLinks"),
+            MissingEquipmentTypeText = Count("EquipmentType"),
+            MissingImageOrVideo = Count("Media"),
+            ByMuscleGroup = exercises.GroupBy(e => e.PrimaryMuscleGroupId)
+                .Select(g => new AdminExerciseMetadataAuditMuscleDto { MuscleGroupId = g.Key, MuscleGroupName = muscleNames.GetValueOrDefault(g.Key, "-"), ActiveExerciseCount = g.Count() })
+                .OrderByDescending(m => m.ActiveExerciseCount).ThenBy(m => m.MuscleGroupName)
+                .ToList(),
+            Items = items.Where(i => i.Missing.Count > 0).OrderByDescending(i => i.Missing.Count).ThenBy(i => i.Id).Take(200).ToList(),
+        };
+    }
+
     private async Task ValidateAsync(AdminUpsertExerciseRequest request, long? existingId, CancellationToken cancellationToken)
     {
         var exerciseRepo = _unitOfWork.Repository<Exercise>();
@@ -233,6 +362,15 @@ public class AdminExerciseService : IAdminExerciseService
             .Where(m => m.Id == entity.PrimaryMuscleGroupId)
             .Select(m => m.Name)
             .FirstOrDefaultAsync(cancellationToken);
+        var secondaryIds = await _unitOfWork.Repository<ExerciseMuscleGroup>().GetQueryable()
+            .Where(l => l.ExerciseId == entity.Id && l.Role == ExerciseMuscleRole.Secondary)
+            .Select(l => l.MuscleGroupId).ToListAsync(cancellationToken);
+        var secondary = await _unitOfWork.Repository<MuscleGroup>().GetQueryable()
+            .Where(m => secondaryIds.Contains(m.Id)).OrderBy(m => m.Id).Select(m => new { m.Id, m.Name }).ToListAsync(cancellationToken);
+        var equipmentIds = await _unitOfWork.Repository<ExerciseEquipment>().GetQueryable()
+            .Where(l => l.ExerciseId == entity.Id).Select(l => l.EquipmentId).ToListAsync(cancellationToken);
+        var equipment = await _unitOfWork.Repository<Equipment>().GetQueryable()
+            .Where(e => equipmentIds.Contains(e.Id)).OrderBy(e => e.Id).Select(e => new { e.Id, e.Name }).ToListAsync(cancellationToken);
 
         return new AdminExerciseDetailDto
         {
@@ -251,6 +389,16 @@ public class AdminExerciseService : IAdminExerciseService
             VideoUrl = entity.VideoUrl,
             CaloriesPerMinute = entity.CaloriesPerMinute,
             UpdatedAt = entity.UpdatedAt,
+            TrainingMetadata = new AdminExerciseTrainingMetadataDto
+            {
+                MechanicType = entity.MechanicType?.ToString(),
+                MovementPattern = entity.MovementPattern?.ToString(),
+                LoadIncrementKg = entity.LoadIncrementKg,
+                SecondaryMuscleGroupIds = secondary.Select(m => m.Id).ToList(),
+                SecondaryMuscleGroupNames = secondary.Select(m => m.Name).ToList(),
+                EquipmentIds = equipment.Select(e => e.Id).ToList(),
+                EquipmentNames = equipment.Select(e => e.Name).ToList(),
+            },
         };
     }
 }

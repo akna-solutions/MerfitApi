@@ -25,6 +25,71 @@ public class AdminExerciseDetailDto : AdminExerciseListItemDto
     public string? VideoUrl { get; set; }
     public decimal? CaloriesPerMinute { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    /// <summary>Antrenman motoru metadata'si (bos alanlari motor tahmin eder ve raporlar).</summary>
+    public AdminExerciseTrainingMetadataDto TrainingMetadata { get; set; } = new();
+}
+
+/// <summary>
+/// Antrenman motorunun kullandigi egzersiz metadata'si. Yeni egzersiz olusturmaz; mevcut kayda baglanir.
+/// </summary>
+public class AdminExerciseTrainingMetadataDto
+{
+    /// <summary>Compound | Isolation | null (bilinmiyor).</summary>
+    public string? MechanicType { get; set; }
+
+    /// <summary>HorizontalPush, VerticalPush, HorizontalPull, VerticalPull, Squat, Hinge, Lunge, Carry, Core, Isolation, Conditioning | null.</summary>
+    public string? MovementPattern { get; set; }
+
+    public decimal? LoadIncrementKg { get; set; }
+    public List<long> SecondaryMuscleGroupIds { get; set; } = new();
+    public List<string> SecondaryMuscleGroupNames { get; set; } = new();
+    public List<long> EquipmentIds { get; set; } = new();
+    public List<string> EquipmentNames { get; set; } = new();
+}
+
+public class AdminUpdateExerciseTrainingMetadataRequest
+{
+    public ExerciseMechanicType? MechanicType { get; set; }
+    public MovementPattern? MovementPattern { get; set; }
+
+    [Range(0, 50, ErrorMessage = "Ağırlık artışı 0-50 kg aralığında olmalıdır.")]
+    public decimal? LoadIncrementKg { get; set; }
+
+    public List<long> SecondaryMuscleGroupIds { get; set; } = new();
+    public List<long> EquipmentIds { get; set; } = new();
+}
+
+/// <summary>Aktif egzersizlerde eksik antrenman metadata'si raporu.</summary>
+public class AdminExerciseMetadataAuditDto
+{
+    public int ActiveExerciseCount { get; set; }
+    public int MissingMechanicType { get; set; }
+    public int MissingMovementPattern { get; set; }
+    public int MissingLoadIncrement { get; set; }
+    public int MissingSecondaryMuscles { get; set; }
+    public int MissingEquipmentLinks { get; set; }
+    public int MissingEquipmentTypeText { get; set; }
+    public int MissingImageOrVideo { get; set; }
+    public List<AdminExerciseMetadataAuditMuscleDto> ByMuscleGroup { get; set; } = new();
+
+    /// <summary>En fazla 200 egzersiz; eksik alan sayisina gore.</summary>
+    public List<AdminExerciseMetadataAuditItemDto> Items { get; set; } = new();
+}
+
+public class AdminExerciseMetadataAuditMuscleDto
+{
+    public long MuscleGroupId { get; set; }
+    public string MuscleGroupName { get; set; } = string.Empty;
+    public int ActiveExerciseCount { get; set; }
+}
+
+public class AdminExerciseMetadataAuditItemDto
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string PrimaryMuscleGroupName { get; set; } = string.Empty;
+    public List<string> Missing { get; set; } = new();
 }
 
 public class AdminExerciseListRequest : PagedRequest

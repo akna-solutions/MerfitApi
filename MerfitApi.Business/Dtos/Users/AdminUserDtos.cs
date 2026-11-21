@@ -155,7 +155,8 @@ public class AdminUserSubscriptionListItemDto
 public class AdminUserWorkoutSessionListItemDto
 {
     public long Id { get; set; }
-    public long WorkoutId { get; set; }
+    /// <summary>Katalog antrenmani. Antrenman motoru gununden baslatilan oturumlarda null.</summary>
+    public long? WorkoutId { get; set; }
     public string WorkoutTitle { get; set; } = string.Empty;
     public DateTime StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
