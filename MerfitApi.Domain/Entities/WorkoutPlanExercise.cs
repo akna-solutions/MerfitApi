@@ -1,3 +1,4 @@
+using MerfitApi.Domain.Entities.Enums;
 using MerfitApi.Domain.Common;
 
 namespace MerfitApi.Domain.Entities;
@@ -25,7 +26,10 @@ public class WorkoutPlanExercise : BaseEntity
     /// <summary>Kullaniciya ozel set basina hedef tekrar sayisi.</summary>
     public int? Reps { get; set; }
 
-    /// <summary>Tekrar araliginin ust siniri (Reps alt siniri); cift progresyon icin. Yoksa null.</summary>
+    /// <summary>
+    /// Hedef tekrar araliginin ust siniri (cift ilerleme). <see cref="Reps"/> araligin alt siniridir.
+    /// Eski planlarda veya sureye dayali egzersizlerde null; bu durumda hedef tek bir tekrar sayisidir.
+    /// </summary>
     public int? RepsMax { get; set; }
 
     /// <summary>Kullaniciya ozel setler arasi dinlenme suresi (saniye).</summary>
@@ -33,4 +37,34 @@ public class WorkoutPlanExercise : BaseEntity
 
     /// <summary>Sureye dayali egzersizler icin kullaniciya ozel hedef sure (saniye).</summary>
     public int? DurationSeconds { get; set; }
+
+    /// <summary>
+    /// Hedef RIR (sette kalan tekrar). Bos ise hedef yok.
+    /// </summary>
+    public int? TargetRir { get; set; }
+
+    /// <summary>
+    /// Bu egzersizle hedeflenen kas grubu.
+    /// </summary>
+    public long? TargetMuscleGroupId { get; set; }
+
+    /// <summary>
+    /// Baslangic agirliginin nasil belirlenecegi.
+    /// </summary>
+    public WeightGuidanceType? WeightGuidance { get; set; }
+
+    /// <summary>
+    /// Yalnizca kullanicinin gecmis kayitlarindan hesaplanan onerilen calisma agirligi. Uydurma deger yazilmaz.
+    /// </summary>
+    public decimal? SuggestedWeightKg { get; set; }
+
+    /// <summary>
+    /// Veritabanindan secilmis alternatif egzersiz kimlikleri (virgulle ayrilmis).
+    /// </summary>
+    public string? AlternativeExerciseIds { get; set; }
+
+    /// <summary>
+    /// Egzersizin neden secildigine dair kisa, kural tabanli aciklama.
+    /// </summary>
+    public string? SelectionReason { get; set; }
 }

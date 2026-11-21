@@ -3,6 +3,7 @@ using MerfitApi.Business.Common.Pagination;
 using MerfitApi.Business.Dtos.Admin.WorkoutPlans;
 using MerfitApi.Business.Interfaces.Services.Admin;
 using MerfitApi.Domain.Entities;
+using MerfitApi.Domain.Entities.Enums;
 using MerfitApi.Domain.Exceptions;
 using MerfitApi.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -138,12 +139,13 @@ public class AdminWorkoutPlanService : IAdminWorkoutPlanService
 
         var rows = await (from d in days
                           where d.WorkoutPlanId == id
-                          join w in workouts on d.WorkoutId equals w.Id
+                          join w in workouts on d.WorkoutId equals (long?)w.Id into wj
+                          from w in wj.DefaultIfEmpty()
                           orderby d.Order, ((int)d.DayOfWeek + 6) % 7 // MerfitCustomerApi gunleri Order=0 ile uretir; hafta sirasi esas alinir
                           select new
                           {
                               d.WorkoutId,
-                              w.Title,
+                              Title = w != null ? w.Title : d.Title,
                               d.CardioWorkoutId,
                               CardioTitle = workouts.Where(c => c.Id == d.CardioWorkoutId).Select(c => c.Title).FirstOrDefault(),
                               d.Order,
@@ -154,7 +156,7 @@ public class AdminWorkoutPlanService : IAdminWorkoutPlanService
         return rows.Select(r => new AdminWorkoutPlanDayItemDto
         {
             WorkoutId = r.WorkoutId,
-            WorkoutTitle = r.Title,
+            WorkoutTitle = r.Title ?? "-",
             CardioWorkoutId = r.CardioWorkoutId,
             CardioWorkoutTitle = r.CardioTitle,
             Order = r.Order,
@@ -165,7 +167,13 @@ public class AdminWorkoutPlanService : IAdminWorkoutPlanService
 
     public async Task<List<AdminWorkoutPlanDayItemDto>> SetDaysAsync(long id, AdminSetWorkoutPlanDaysRequest request, long? adminUserId, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default)
     {
-        await GetOrThrowAsync(id, cancellationToken);
+        var plan = await GetOrThrowAsync(id, cancellationToken);
+        if (plan.Source != TrainingProgramSource.Catalog)
+        {
+            // Motor / elle degistirilmis versiyonlarda gunler silinip yeniden yazilirsa egzersiz recetesi ve
+            // tamamlanan oturumlarin plan gunu baglantisi kaybolur. Degisiklik kullanicinin yeni versiyonuyla yapilir.
+            throw new AppValidationException(nameof(request.Days), "Kişisel antrenman motoru programlarının günleri panelden değiştirilemez; geçmişi korumak için kullanıcı yeni bir versiyon oluşturur.");
+        }
 
         var workoutIds = request.Days.Select(x => x.WorkoutId).Distinct().ToList();
         if (workoutIds.Count > 0)

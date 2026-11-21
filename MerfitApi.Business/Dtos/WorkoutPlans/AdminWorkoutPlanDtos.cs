@@ -40,7 +40,8 @@ public class AdminUpdateWorkoutPlanStatusRequest
 
 public class AdminWorkoutPlanDayItemDto
 {
-    public long WorkoutId { get; set; }
+    /// <summary>Katalog antrenmani. Antrenman motoru gunlerinde null (gunun egzersizleri plan egzersizleridir).</summary>
+    public long? WorkoutId { get; set; }
     public string WorkoutTitle { get; set; } = string.Empty;
 
     /// <summary>Antrenman sonu kardiyo (MerfitCustomerApi plan uretimi ekler); yoksa null.</summary>
