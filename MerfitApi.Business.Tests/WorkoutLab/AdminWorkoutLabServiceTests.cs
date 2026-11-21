@@ -109,6 +109,26 @@ public class AdminWorkoutLabServiceTests
     }
 
     [Fact]
+    public async Task ActivityLevel_IsStoredInProfile_ForStepGoal()
+    {
+        var (service, uow, _) = Create();
+
+        var dto = await service.CreateAsync(Request(p => p.ActivityLevel = ActivityLevel.VeryActive), 9, null, null);
+
+        Assert.Equal("VeryActive", Profile(uow, dto.Id).GetProperty("activityLevel").GetString());
+    }
+
+    [Fact]
+    public async Task ActivityLevel_IsOptional()
+    {
+        var (service, uow, _) = Create();
+
+        var dto = await service.CreateAsync(Request(), 9, null, null);
+
+        Assert.Equal(JsonValueKind.Null, Profile(uow, dto.Id).GetProperty("activityLevel").ValueKind);
+    }
+
+    [Fact]
     public async Task Gym_IsAlwaysEquipped()
     {
         var (service, uow, _) = Create();
@@ -297,6 +317,7 @@ public class AdminWorkoutLabServiceTests
         Assert.Equal(new[] { "Barbell", "Dumbbell" }, options.Equipment.Select(e => e.Name));
         Assert.Equal(new[] { "BuildMuscle", "GetStronger", "LoseWeight" }, options.Goals.Select(g => g.Value));
         Assert.Equal(new[] { 15, 20, 30, 45, 60, 75, 90 }, options.DurationOptions);
+        Assert.Equal(new[] { "Sedentary", "LightlyActive", "ModeratelyActive", "VeryActive", "ExtraActive" }, options.ActivityLevels.Select(a => a.Value));
         Assert.Equal(new[] { 3, 4, 5 }, options.TargetTrainingDaysByExperience.Values);
         Assert.Equal(1, options.LoseWeightExtraTrainingDays);
         Assert.Equal(2, options.ActiveWorkoutCount);

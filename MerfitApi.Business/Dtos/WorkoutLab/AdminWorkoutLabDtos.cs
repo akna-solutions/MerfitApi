@@ -16,6 +16,8 @@ public class AdminWorkoutLabOptionsDto
     public List<AdminWorkoutLabOptionItem> ExperienceLevels { get; set; } = new();
     public List<AdminWorkoutLabOptionItem> TrainingLocations { get; set; } = new();
     public List<AdminWorkoutLabOptionItem> Genders { get; set; } = new();
+    /// <summary>Gunluk aktivite seviyeleri; yalnizca otomatik adim hedefi hesabinda kullanilir.</summary>
+    public List<AdminWorkoutLabOptionItem> ActivityLevels { get; set; } = new();
     public List<AdminWorkoutLabOptionItem> WeekDays { get; set; } = new();
     public List<int> DurationOptions { get; set; } = new();
     public List<AdminWorkoutLabEquipmentDto> Equipment { get; set; } = new();
@@ -73,6 +75,9 @@ public class AdminWorkoutLabProfileInput
 
     [Range(30, 300)]
     public decimal? TargetWeightKg { get; set; }
+
+    /// <summary>Gunluk aktivite seviyesi. Antrenman algoritmasi kullanmaz; otomatik adim hedefi buna gore hesaplanir.</summary>
+    public ActivityLevel? ActivityLevel { get; set; }
 
     /// <summary>Yalnizca uc ana hedef: BuildMuscle, GetStronger, LoseWeight. Bos ise Kas Gelistirme.</summary>
     public FitnessGoal? Goal { get; set; }

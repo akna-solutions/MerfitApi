@@ -89,6 +89,14 @@ public class AdminWorkoutLabService : IAdminWorkoutLabService
                 Item(nameof(Gender.Male), "Erkek"),
                 Item(nameof(Gender.Female), "Kadın"),
             },
+            ActivityLevels = new List<AdminWorkoutLabOptionItem>
+            {
+                Item(nameof(ActivityLevel.Sedentary), "Hareketsiz"),
+                Item(nameof(ActivityLevel.LightlyActive), "Hafif aktif"),
+                Item(nameof(ActivityLevel.ModeratelyActive), "Orta aktif"),
+                Item(nameof(ActivityLevel.VeryActive), "Çok aktif"),
+                Item(nameof(ActivityLevel.ExtraActive), "Aşırı aktif"),
+            },
             WeekDays = DayCodes.Zip(new[] { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" })
                 .Select(x => Item(x.First, x.Second))
                 .ToList(),
@@ -451,6 +459,7 @@ public class AdminWorkoutLabService : IAdminWorkoutLabService
             HeightCm = input.HeightCm,
             WeightKg = input.WeightKg,
             TargetWeightKg = input.TargetWeightKg,
+            ActivityLevel = input.ActivityLevel,
             Goal = input.Goal,
             ExperienceLevel = input.ExperienceLevel,
             TrainingLocation = input.TrainingLocation,
@@ -538,6 +547,7 @@ public sealed class WorkoutLabProfileJson
     public decimal? HeightCm { get; set; }
     public decimal? WeightKg { get; set; }
     public decimal? TargetWeightKg { get; set; }
+    public ActivityLevel? ActivityLevel { get; set; }
     public FitnessGoal? Goal { get; set; }
     public ExperienceLevel? ExperienceLevel { get; set; }
     public TrainingLocation TrainingLocation { get; set; }
