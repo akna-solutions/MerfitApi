@@ -67,8 +67,28 @@ public partial class AdminProductService : IAdminProductService
             _ => throw new AppValidationException(nameof(request.SortBy), "Gecersiz siralama alani."),
         };
 
+        // Performans: liste tablosunda gosterilmeyen buyuk metin alanlari (Description, FeaturesJson, SpecsJson,
+        // VariantsJson) okunmaz; yalnizca liste kolonlari cekilir.
         var rows = await ordered.ThenByDescending(p => p.Id)
             .Skip((request.Page - 1) * request.PageSize).Take(request.PageSize)
+            .Select(p => new Product
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Slug = p.Slug,
+                Sku = p.Sku,
+                Brand = p.Brand,
+                CategoryId = p.CategoryId,
+                Price = p.Price,
+                DiscountPrice = p.DiscountPrice,
+                StockQuantity = p.StockQuantity,
+                IsActive = p.IsActive,
+                IsFeatured = p.IsFeatured,
+                HighlightBadge = p.HighlightBadge,
+                SortOrder = p.SortOrder,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt,
+            })
             .ToListAsync(cancellationToken);
 
         var items = await ToListItemsAsync(rows, cancellationToken);
@@ -400,6 +420,7 @@ public partial class AdminProductService : IAdminProductService
         var categoryIds = rows.Select(r => r.CategoryId).Distinct().ToList();
         var categories = await _unitOfWork.Repository<StoreCategory>().GetQueryable()
             .Where(c => categoryIds.Contains(c.Id))
+            .Select(c => new { c.Id, c.Name })
             .ToDictionaryAsync(c => c.Id, c => c.Name, cancellationToken);
         var images = await _unitOfWork.Repository<ProductImage>().GetQueryable()
             .Where(i => ids.Contains(i.ProductId))

@@ -137,6 +137,7 @@ public class AdminProductReviewService : IAdminProductReviewService
         var userIds = reports.Select(r => r.ReporterUserId).Concat(audit.Where(a => a.UserId.HasValue).Select(a => a.UserId!.Value)).Distinct().ToList();
         var emails = await _unitOfWork.Repository<ApplicationUser>().GetQueryable()
             .Where(u => userIds.Contains(u.Id))
+            .Select(u => new { u.Id, u.Email })
             .ToDictionaryAsync(u => u.Id, u => u.Email, cancellationToken);
 
         dto.Reports = reports.Select(r => new AdminProductReviewReportDto
@@ -289,6 +290,8 @@ public class AdminProductReviewService : IAdminProductReviewService
 
         var products = await _unitOfWork.Repository<Product>().GetQueryable()
             .Where(p => productIds.Contains(p.Id))
+            // Yalnizca urun adi gerekir; tum urun satiri (aciklama, ozellik JSON'lari) okunmaz.
+            .Select(p => new { p.Id, p.Name })
             .ToDictionaryAsync(p => p.Id, p => p.Name, cancellationToken);
         var emails = await _unitOfWork.Repository<ApplicationUser>().GetQueryable()
             .Where(u => userIds.Contains(u.Id))

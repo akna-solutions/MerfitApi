@@ -107,13 +107,14 @@ public class AdminAnalyticsService : IAdminAnalyticsService
         var distinctUsers = await meals.Select(m => m.UserId).Distinct().CountAsync(cancellationToken);
         var avgMealsPerUser = distinctUsers == 0 ? 0 : Math.Round((double)totalMeals / distinctUsers, 2);
 
-        var mealIds = await meals.Select(m => m.Id).ToListAsync(cancellationToken);
+        // Performans: son 30 gunun tum ogun id'leri bellege cekilmez; toplam tek SQL'de alt sorguyla hesaplanir.
         double avgCaloriesPerMeal = 0;
-        if (mealIds.Count > 0)
+        if (totalMeals > 0)
         {
+            var mealIds = meals.Select(m => m.Id);
             var totalCalories = await mealItems.Where(mi => mealIds.Contains(mi.MealId))
                 .SumAsync(mi => (decimal?)mi.Calories, cancellationToken) ?? 0m;
-            avgCaloriesPerMeal = Math.Round((double)(totalCalories / mealIds.Count), 2);
+            avgCaloriesPerMeal = Math.Round((double)(totalCalories / totalMeals), 2);
         }
 
         var usersWithGoal = await _unitOfWork.Repository<NutritionGoal>().GetQueryable().LongCountAsync(cancellationToken);

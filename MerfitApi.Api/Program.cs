@@ -24,6 +24,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+// Performans: JSON yanitlari Brotli/Gzip ile sikistirilir (admin panelindeki buyuk tablolarda yuk boyutu belirgin azalir).
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Fastest);
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Fastest);
+
 builder.Services.AddControllers()
     // Enum'lar isteklerde ad veya sayi olarak kabul edilir; yanitlarda sayi olarak kalir.
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new LenientEnumConverterFactory()));
@@ -181,6 +191,8 @@ var app = builder.Build();
 // Pipeline'daki tum istisnalari yakalayip tutarli bir ApiResponse govdesine ceviren middleware;
 // dogru HTTP status kodlarinin donmesi icin (bkz. madde 38) pipeline'in en basina eklenir.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.UseResponseCompression();
 
 if (app.Environment.IsDevelopment())
 {
